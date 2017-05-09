@@ -130,7 +130,7 @@ public class MainActivity extends AppCompatActivity {
     private Size mPreviewSize;
     private Size mImageSize;
     private ImageReader mImageReader;
-    private final ImageReader.OnImageAvailableListener mOnImageAvailableListener = new
+    private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new
             ImageReader.OnImageAvailableListener() {
                 @Override
                 public void onImageAvailable(ImageReader reader) {
@@ -214,9 +214,9 @@ public class MainActivity extends AppCompatActivity {
                     closeCamera();
                     stopBackgroundThread();
                     // mTextureView invisible?
-
                 }else{
                     startBackgroundThread();
+                    setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
                     connectCamera();
                 }
             }
@@ -431,7 +431,7 @@ public class MainActivity extends AppCompatActivity {
     public void onWindowFocusChanged(boolean hasFocas) {
         super.onWindowFocusChanged(hasFocas);
         View decorView = getWindow().getDecorView();
-        if (1==11){
+        if (1==11){ //todo
         //if (hasFocas) {
             decorView.setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -589,7 +589,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private static Size chooseOptimalSize(Size[] choices, int width, int height) {
-        List<Size> bigEnough = new ArrayList<Size>();
+        List<Size> bigEnough = new ArrayList<>();
         for (Size option : choices) {
             if(option.getHeight()>height) return choices[2]; //todo 0,1 nie dziala zbadać
 
