@@ -70,12 +70,12 @@ public class MainActivity extends AppCompatActivity {
     private TextureView mTextureView;
     private ToggleButton btnPreview;
     private TextRecognizer textRecognizer;
-    private EditText textBlockContent;
-    ContentResolver contentResolver;
-    private float prPodDoch, prVat, prVatProduktu;
+    private EditText eGross;
+    private ContentResolver contentResolver;
+    private float incomeTax, vatRelief, articleVat;
     private Dao dao;
-    int SX=2;
-    int SY=4;
+    private int SX=2;
+    private int SY=4;
 
     private TextureView.SurfaceTextureListener mSurfaceTextureListener ;
     private CameraDevice mCameraDevice;
@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
     private CaptureRequest.Builder mCaptureRequestBuilder;
 
-    private Button mStillImageButton;
+    private Button btnScan;
     private GridLayout layParameters;
     private LinearLayout laySummary;
 
@@ -112,13 +112,12 @@ public class MainActivity extends AppCompatActivity {
         createImageFolder();
 
         if (dao.isTaxesSaved()){
-            odczytajZapisaneDane();
-            ustawParametry();
+            readSavedParameters();
+            setupParameters();
             layParameters.setVisibility(View.GONE);
         }else{
             laySummary.setVisibility(View.GONE);
         }
-
 
         //showAds();
     }
@@ -223,7 +222,7 @@ public class MainActivity extends AppCompatActivity {
             public void receiveDetections(Detector.Detections<TextBlock> detections) {
                 final SparseArray<TextBlock> items=detections.getDetectedItems();
 /*                if (items.size() != 0) {
-                    textBlockContent.post(new Runnable() {
+                    eGross.post(new Runnable() {
                         @Override
                         public void run() {
                             StringBuilder value = new StringBuilder();
@@ -233,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
                                 value.append("\n");
                             }
                             //update text block content to TextView
-                            textBlockContent.setText(value.toString());
+                            eGross.setText(value.toString());
                         }
                     });
                 }*/
@@ -242,8 +241,8 @@ public class MainActivity extends AppCompatActivity {
 
         TextWatcher watcher= new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                if (!textBlockContent.getText().toString().equals("")) {
-                    oblicz();
+                if (!eGross.getText().toString().equals("")) {
+                    calculate();
                 }
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -254,16 +253,16 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        textBlockContent = (EditText) findViewById(R.id.e_gross);
-        textBlockContent.addTextChangedListener(watcher);
+        eGross = (EditText) findViewById(R.id.e_gross);
+        eGross.addTextChangedListener(watcher);
 
         layParameters=(GridLayout)findViewById(R.id.lay_parameters);
         laySummary=(LinearLayout)findViewById(R.id.lay_summary);
     }
 
     private void setupButtons(){
-        mStillImageButton = (Button) findViewById(R.id.btn_scan);
-        mStillImageButton.setOnClickListener(new View.OnClickListener() {
+        btnScan = (Button) findViewById(R.id.btn_scan);
+        btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 checkWriteStoragePermission();
@@ -275,15 +274,16 @@ public class MainActivity extends AppCompatActivity {
         btnPreview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                View curtain= findViewById(R.id.tv_curtain);                
                 if (((ToggleButton)v).isChecked()){
                     closeCamera();
                     stopBackgroundThread();
-                    findViewById(R.id.tv_curtain).setVisibility(View.VISIBLE);
+                    curtain.setVisibility(View.VISIBLE);
                 }else{
                     startBackgroundThread();
                     setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
                     connectCamera();
-                    findViewById(R.id.tv_curtain).setVisibility(View.INVISIBLE);
+                    curtain.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -303,7 +303,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 layParameters.setVisibility(View.GONE);
                 laySummary.setVisibility(View.VISIBLE);
-                ustawParametry();
+                setupParameters();
             }
         });
 
@@ -313,41 +313,40 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void odczytajWybraneParametry(){
-        prVat=podajProcentVatOdliczanego();
-        prPodDoch=podajProcentPodDoch();
+    private void readCheckedParameters(){
+        vatRelief = getVatRelief();
+        incomeTax = getIncomeTax();
+        articleVat = getArticleVat();
+    }
+
+    private void calculate(){
+        float reliefAmount;
+        String sGross= eGross.getText().toString();
+        float grossAmount = sGross.isEmpty() ? 0 : Float.valueOf(sGross.replace(",", "."));
+        float vatAmount=grossAmount-grossAmount/(1+ articleVat);
+        float vatReliefAmount=vatAmount* vatRelief;
+        float incomeTaxAmount=(grossAmount-vatReliefAmount)* incomeTax;
+
+        reliefAmount=vatReliefAmount+incomeTaxAmount;
+        ((TextView)findViewById(R.id.tv_relief)).setText(String.format("%1$,.2f", reliefAmount));
+        ((TextView)findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f",grossAmount-reliefAmount));
 
     }
 
-    private void oblicz(){
-        float odliczenia;
-        String bruttoS=textBlockContent.getText().toString();
-        float brutto = bruttoS.isEmpty() ? 0 : Float.valueOf(bruttoS.replace(",", "."));
-        float prVatProduktu=podajProcentVatProduktu();
-        float vatProduktu=brutto-brutto/(1+prVatProduktu);
-        float vatOdliczony=vatProduktu*prVat;
-        float kwotaPodDoch=(brutto-vatOdliczony)*prPodDoch;
-
-        odliczenia=vatOdliczony+kwotaPodDoch;
-        ((TextView)findViewById(R.id.tv_relief)).setText(String.format("%1$,.2f", odliczenia));
-        ((TextView)findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f",brutto-odliczenia));
-
-    }
-
-    private float podajProcentVatProduktu(){
+    private float getArticleVat(){
         if(((RadioButton)findViewById(R.id.rb_p_0)).isChecked()) return 0f;
         if(((RadioButton)findViewById(R.id.rb_p_5)).isChecked()) return 0.05f;
         if(((RadioButton)findViewById(R.id.rb_p_8)).isChecked()) return 0.08f;
         return 0.23f;
     }
 
-    private float podajProcentVatOdliczanego(){
+    private float getVatRelief(){
         if(((RadioButton)findViewById(R.id.rb_0)).isChecked()) return 0f;
         if(((RadioButton)findViewById(R.id.rb_50)).isChecked()) return 0.5f;
         return 1;
     }
 
-    private float podajProcentPodDoch(){
+    private float getIncomeTax(){
         if(((RadioButton)findViewById(R.id.rb_18)).isChecked()) return 0.18f;
         else return 0.19f;
     }
@@ -358,27 +357,25 @@ public class MainActivity extends AppCompatActivity {
         mAdView.loadAd(adRequest);
     }
 
-    private void odczytajZapisaneDane(){
-        prPodDoch= (float) (dao.getIncomeTax()*0.01);
-        prVat= (float) (dao.getVat()*0.01);
+    private void readSavedParameters(){
+        incomeTax = (float) (dao.getIncomeTax()*0.01);
+        vatRelief = (float) (dao.getVat()*0.01);
     }
 
-    private void ustawParametry(){
-        TextView tvPD=(TextView)findViewById(R.id.tv_income_tax);
-        TextView tvVat=(TextView)findViewById(R.id.tv_vat);
-        tvPD.setText(prPodDoch*100+"%");
-        tvVat.setText(prVat*100+"%");
+    private void setupParameters(){
+        ((TextView)findViewById(R.id.tv_income_tax)).setText(incomeTax *100+"%");
+        ((TextView)findViewById(R.id.tv_vat)).setText(vatRelief *100+"%");
 
-        if (prPodDoch == 0.18f) {
+        if (incomeTax == 0.18f) {
             ((RadioButton) findViewById(R.id.rb_18)).setChecked(true);
         } else {
             ((RadioButton) findViewById(R.id.rb_19)).setChecked(true);
         }
 
-        if (prVat == 0f) {
+        if (vatRelief == 0f) {
             ((RadioButton) findViewById(R.id.rb_0)).setChecked(true);
 
-        } else if (prVat == 0.5f) {
+        } else if (vatRelief == 0.5f) {
             ((RadioButton) findViewById(R.id.rb_50)).setChecked(true);
 
         } else  {
@@ -386,8 +383,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void zapiszParametry(){
-        dao.saveTaxes((int)(prVat*100),(int)(prPodDoch*100));
+    private void saveParameters(){
+        dao.saveTaxes((int)(vatRelief *100),(int)(incomeTax *100));
     }
 
     @Override
@@ -435,11 +432,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocas) {
-        super.onWindowFocusChanged(hasFocas);
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
         View decorView = getWindow().getDecorView();
         if (1==11){ //todo
-        //if (hasFocas) {
+        //if (hasFocus) {
             decorView.setSystemUiVisibility(
                     View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                     | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
@@ -584,7 +581,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     private static Size prevSize(Size[] choices, int width, int height){
         for (int i=1;i<choices.length;i++){ //0 na pewno za duze, pasuje tylko na fullscreen
             if(choices[i].getWidth()<width)return choices[i-1];
@@ -607,7 +603,6 @@ public class MainActivity extends AppCompatActivity {
             return choices[0];
         }
     }
-
 
     private void createImageFolder() { //todo potrzebne?
         File imageFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
@@ -640,7 +635,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
     }
-
 
     private void lockFocus() {
         if(mBackgroundHandler==null)return;
@@ -725,10 +719,10 @@ public class MainActivity extends AppCompatActivity {
             if(matcher.find()){
                 final String finalText = matcher.group(0);
                 //final String finalText = text;
-                textBlockContent.post(new Runnable() {
+                eGross.post(new Runnable() {
                     @Override
                     public void run() {
-                        textBlockContent.setText(finalText);
+                        eGross.setText(finalText);
                     }
                 });
 
@@ -786,12 +780,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class CheckedChangeListener implements RadioGroup.OnCheckedChangeListener {
-
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
-            odczytajWybraneParametry();
-            oblicz();
-            zapiszParametry();
+            readCheckedParameters();
+            calculate();
+            saveParameters();
         }
     }
 }
