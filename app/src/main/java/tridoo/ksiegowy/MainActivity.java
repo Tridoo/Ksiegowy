@@ -29,7 +29,6 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.util.Size;
 import android.util.SparseArray;
 import android.view.Surface;
@@ -65,7 +64,7 @@ import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-    private int mCaptureState = Config.STATE_PREVIEW;
+    private int mCaptureState;
     private TextureView mTextureView;
     private ToggleButton btnPreview;
     private TextRecognizer textRecognizer;
@@ -76,151 +75,140 @@ public class MainActivity extends AppCompatActivity {
     int SX=2;
     int SY=4;
 
-
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
-        @Override
-        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            Matrix matrix = new Matrix();
-
-            matrix.setScale(SX, SY,width/2,height/2); //todo jaki zoom?
-            mTextureView.setTransform(matrix);
-
-            setupCamera(width, height);
-            connectCamera();
-        }
-
-        @Override
-        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-
-        }
-
-        @Override
-        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-            return false;
-        }
-
-        @Override
-        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-
-        }
-    };
+    private TextureView.SurfaceTextureListener mSurfaceTextureListener ;
     private CameraDevice mCameraDevice;
-    private CameraDevice.StateCallback mCameraDeviceStateCallback = new CameraDevice.StateCallback() {
-        @Override
-        public void onOpened(CameraDevice camera) {
-            mCameraDevice = camera;
-            startPreview();
-        }
-
-        @Override
-        public void onDisconnected(CameraDevice camera) {
-            camera.close();
-            mCameraDevice = null;
-        }
-
-        @Override
-        public void onError(CameraDevice camera, int error) {
-            camera.close();
-            mCameraDevice = null;
-        }
-    };
+    private CameraDevice.StateCallback mCameraDeviceStateCallback ;
     private HandlerThread mBackgroundHandlerThread;
     private Handler mBackgroundHandler;
     private String mCameraId;
     private Size mPreviewSize;
     private Size mImageSize;
     private ImageReader mImageReader;
-    private ImageReader.OnImageAvailableListener mOnImageAvailableListener = new
-            ImageReader.OnImageAvailableListener() {
-                @Override
-                public void onImageAvailable(ImageReader reader) {
-                    //if(mBackgroundHandler==null) System.out.print("XXXXXXXXXXXXXXXXXXX");
-                    mBackgroundHandler.post(new ImageSaver(reader.acquireLatestImage()));
-                }
-            };
-
-
+    private ImageReader.OnImageAvailableListener mOnImageAvailableListener ;
 
     private CameraCaptureSession mPreviewCaptureSession;
-    private CameraCaptureSession.CaptureCallback mPreviewCaptureCallback = new
-            CameraCaptureSession.CaptureCallback() {
-
-                private void process(CaptureResult captureResult) {
-                    switch (mCaptureState) {
-                        case Config.STATE_PREVIEW:
-                            // Do nothing
-                            break;
-                        case Config.STATE_WAIT_LOCK:
-                            mCaptureState = Config.STATE_PREVIEW;
-                            Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
-                            if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
-                                    afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
-                                Toast.makeText(getApplicationContext(), "AF Locked!", Toast.LENGTH_SHORT).show();
-                                startStillCaptureRequest();
-                            }
-                            break;
-                    }
-                }
-
-                @Override
-                public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                    super.onCaptureCompleted(session, request, result);
-
-                    process(result);
-                }
-            };
+    private CameraCaptureSession.CaptureCallback mPreviewCaptureCallback ;
 
     private CaptureRequest.Builder mCaptureRequestBuilder;
 
     private Button mStillImageButton;
 
-
     private File mImageFolder;
     private String mImageFileName;
 
-
-    private static class CompareSizeByArea implements Comparator<Size> {
-
-        @Override
-        public int compare(Size lhs, Size rhs) {
-            return Long.signum((long) (lhs.getWidth() * lhs.getHeight()) -
-                    (long) (rhs.getWidth() * rhs.getHeight()));
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ksiegowy);
 
+        init();
+        setupButtons();
+
         createImageFolder();
+
+        if (dao.isCzySaDane()){
+            odczytajZapisaneDane();
+            ustawParametry();
+            findViewById(R.id.lay_parametry).setVisibility(View.GONE);
+        }else{
+            findViewById(R.id.lay_zestawienie).setVisibility(View.GONE);
+        }
+
+
+        //showAds();
+    }
+
+    private void init(){
+        mCaptureState = Config.STATE_PREVIEW;
+
+        mSurfaceTextureListener = new TextureView.SurfaceTextureListener() {
+            @Override
+            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                Matrix matrix = new Matrix();
+
+                matrix.setScale(SX, SY,width/2,height/2); //todo jaki zoom?
+                mTextureView.setTransform(matrix);
+
+                setupCamera(width, height);
+                connectCamera();
+            }
+
+            @Override
+            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+
+            }
+
+            @Override
+            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+                return false;
+            }
+
+            @Override
+            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+
+            }
+        };
+
+        mCameraDeviceStateCallback = new CameraDevice.StateCallback() {
+            @Override
+            public void onOpened(CameraDevice camera) {
+                mCameraDevice = camera;
+                startPreview();
+            }
+
+            @Override
+            public void onDisconnected(CameraDevice camera) {
+                camera.close();
+                mCameraDevice = null;
+            }
+
+            @Override
+            public void onError(CameraDevice camera, int error) {
+                camera.close();
+                mCameraDevice = null;
+            }
+        };
+
+        mOnImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+            @Override
+            public void onImageAvailable(ImageReader reader) {
+                mBackgroundHandler.post(new ImageSaver(reader.acquireLatestImage()));
+            }
+        };
+
+        mPreviewCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+                    private void process(CaptureResult captureResult) {
+                        switch (mCaptureState) {
+                            case Config.STATE_PREVIEW:
+                                // Do nothing
+                                break;
+                            case Config.STATE_WAIT_LOCK:
+                                mCaptureState = Config.STATE_PREVIEW;
+                                Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
+                                if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                                        afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
+                                    Toast.makeText(getApplicationContext(), "AF Locked!", Toast.LENGTH_SHORT).show();
+                                    startStillCaptureRequest();
+                                }
+                                break;
+                        }
+                    }
+
+                    @Override
+                    public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
+                        super.onCaptureCompleted(session, request, result);
+
+                        process(result);
+                    }
+                };
+
+
+        contentResolver=this.getContentResolver();
+        dao=new Dao(getApplicationContext());
 
         mTextureView = (TextureView) findViewById(R.id.textureView);
 
-        mStillImageButton = (Button) findViewById(R.id.btn_skanuj);
-        mStillImageButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkWriteStoragePermission();
-                lockFocus();
-            }
-        });
-
-        btnPreview =(ToggleButton) findViewById(R.id.btn_podglad);
-        btnPreview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (((ToggleButton)v).isChecked()){
-                    closeCamera();
-                    stopBackgroundThread();
-                    // mTextureView invisible?
-                }else{
-                    startBackgroundThread();
-                    setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
-                    connectCamera();
-                }
-            }
-        });
         textRecognizer=new TextRecognizer.Builder(getApplicationContext()).build();
         textRecognizer.setProcessor(new Detector.Processor<TextBlock>() { //potrzebne?
             @Override
@@ -253,7 +241,6 @@ public class MainActivity extends AppCompatActivity {
                 if (!textBlockContent.getText().toString().equals("")) {
                     oblicz();
                 }
-
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 //Do something or nothing.
@@ -265,17 +252,34 @@ public class MainActivity extends AppCompatActivity {
 
         textBlockContent = (EditText) findViewById(R.id.e_brutto);
         textBlockContent.addTextChangedListener(watcher);
+    }
 
-        contentResolver=this.getContentResolver();
+    private void setupButtons(){
+        mStillImageButton = (Button) findViewById(R.id.btn_skanuj);
+        mStillImageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                checkWriteStoragePermission();
+                lockFocus();
+            }
+        });
 
-        dao=new Dao(getApplicationContext());
-        if (dao.isCzySaDane()){
-            odczytajZapisaneDane();
-            ustawParametry();
-            findViewById(R.id.lay_parametry).setVisibility(View.GONE);
-        }else{
-            findViewById(R.id.lay_zestawienie).setVisibility(View.GONE);
-        }
+        btnPreview =(ToggleButton) findViewById(R.id.btn_podglad);
+        btnPreview.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (((ToggleButton)v).isChecked()){
+                    closeCamera();
+                    stopBackgroundThread();
+                    findViewById(R.id.zaslona).setVisibility(View.VISIBLE);
+                }else{
+                    startBackgroundThread();
+                    setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
+                    connectCamera();
+                    findViewById(R.id.zaslona).setVisibility(View.INVISIBLE);
+                }
+            }
+        });
 
         ((TextView)(findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -301,7 +305,6 @@ public class MainActivity extends AppCompatActivity {
         grupa1.setOnCheckedChangeListener(new CheckedChangeListener());
         grupa2.setOnCheckedChangeListener(new CheckedChangeListener());
         grupa3.setOnCheckedChangeListener(new CheckedChangeListener());
-        //showAds();
 
     }
 
@@ -381,7 +384,6 @@ public class MainActivity extends AppCompatActivity {
     private void zapiszParametry(){
         dao.zapiszDane((int)(prVat*100),(int)(prPodDoch*100));
     }
-
 
     @Override
     protected void onResume() {
@@ -500,13 +502,11 @@ public class MainActivity extends AppCompatActivity {
             mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             mCaptureRequestBuilder.addTarget(previewSurface);
             mCaptureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-            //mCaptureRequestBuilder.set(CaptureRequest.CONTROL_EFFECT_MODE, CaptureRequest.CONTROL_EFFECT_MODE_AQUA);
 
             mCameraDevice.createCaptureSession(Arrays.asList(previewSurface, mImageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
                         @Override
                         public void onConfigured(CameraCaptureSession session) {
-                            Log.d(Config.TAG, "onConfigured: startPreview");
                             mPreviewCaptureSession = session;
                             try {
                                 mPreviewCaptureSession.setRepeatingRequest(mCaptureRequestBuilder.build(),
@@ -518,7 +518,6 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void onConfigureFailed(CameraCaptureSession session) {
-                            Log.d(Config.TAG, "onConfigureFailed: startPreview");
 
                         }
                     }, null);
@@ -605,7 +604,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private void createImageFolder() {
+    private void createImageFolder() { //todo potrzebne?
         File imageFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         mImageFolder = new File(imageFile, "camera2VideoImage");
         if (!mImageFolder.exists()) {
@@ -647,6 +646,14 @@ public class MainActivity extends AppCompatActivity {
 
         } catch (CameraAccessException e) {
             e.printStackTrace();
+        }
+    }
+
+    private static class CompareSizeByArea implements Comparator<Size> {
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            return Long.signum((long) (lhs.getWidth() * lhs.getHeight()) -
+                    (long) (rhs.getWidth() * rhs.getHeight()));
         }
     }
 
@@ -724,7 +731,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        private Bitmap getBmp( Image image){
+    private Bitmap getBmp( Image image){
             Bitmap result;
             int targetImageViewWidth = image.getWidth();
             int targetImageViewHeight = image.getHeight();

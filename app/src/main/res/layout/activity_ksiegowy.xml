@@ -390,7 +390,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/zaslona"
+        android:id="@+id/z1"
         android:layout_alignBottom="@+id/textureView"
         android:layout_alignEnd="@+id/textureView"
         android:layout_alignStart="@+id/textureView"
@@ -403,7 +403,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/z2"
-        android:layout_above="@+id/zaslona"
+        android:layout_above="@+id/z1"
         android:layout_alignTop="@+id/textureView"
         android:layout_toLeftOf="@+id/ramka"
         android:layout_alignStart="@+id/textureView"
@@ -416,9 +416,21 @@
         android:id="@+id/z3"
         android:layout_alignTop="@+id/textureView"
         android:layout_alignEnd="@+id/textureView"
-        android:layout_above="@+id/zaslona"
+        android:layout_above="@+id/z1"
         android:background="@android:color/background_light"
         android:alpha="0.5"
         android:layout_toRightOf="@+id/ramka" />
+
+    <TextView
+        android:id="@+id/zaslona"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_alignBottom="@+id/textureView"
+        android:layout_alignEnd="@+id/textureView"
+        android:layout_alignStart="@+id/textureView"
+        android:layout_alignTop="@+id/textureView"
+        android:layout_centerVertical="true"
+        android:background="@android:color/black"
+        android:visibility="invisible" />
 
 </RelativeLayout>
