@@ -36,6 +36,8 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.GridLayout;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -92,6 +94,8 @@ public class MainActivity extends AppCompatActivity {
     private CaptureRequest.Builder mCaptureRequestBuilder;
 
     private Button mStillImageButton;
+    private GridLayout layParameters;
+    private LinearLayout laySummary;
 
     private File mImageFolder;
     private String mImageFileName;
@@ -107,12 +111,12 @@ public class MainActivity extends AppCompatActivity {
 
         createImageFolder();
 
-        if (dao.isCzySaDane()){
+        if (dao.isTaxesSaved()){
             odczytajZapisaneDane();
             ustawParametry();
-            findViewById(R.id.lay_parametry).setVisibility(View.GONE);
+            layParameters.setVisibility(View.GONE);
         }else{
-            findViewById(R.id.lay_zestawienie).setVisibility(View.GONE);
+            laySummary.setVisibility(View.GONE);
         }
 
 
@@ -250,12 +254,15 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 
-        textBlockContent = (EditText) findViewById(R.id.e_brutto);
+        textBlockContent = (EditText) findViewById(R.id.e_gross);
         textBlockContent.addTextChangedListener(watcher);
+
+        layParameters=(GridLayout)findViewById(R.id.lay_parameters);
+        laySummary=(LinearLayout)findViewById(R.id.lay_summary);
     }
 
     private void setupButtons(){
-        mStillImageButton = (Button) findViewById(R.id.btn_skanuj);
+        mStillImageButton = (Button) findViewById(R.id.btn_scan);
         mStillImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -264,47 +271,45 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        btnPreview =(ToggleButton) findViewById(R.id.btn_podglad);
+        btnPreview =(ToggleButton) findViewById(R.id.tb_preview);
         btnPreview.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (((ToggleButton)v).isChecked()){
                     closeCamera();
                     stopBackgroundThread();
-                    findViewById(R.id.zaslona).setVisibility(View.VISIBLE);
+                    findViewById(R.id.tv_curtain).setVisibility(View.VISIBLE);
                 }else{
                     startBackgroundThread();
                     setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
                     connectCamera();
-                    findViewById(R.id.zaslona).setVisibility(View.INVISIBLE);
+                    findViewById(R.id.tv_curtain).setVisibility(View.INVISIBLE);
                 }
             }
         });
 
+
+
         ((TextView)(findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                findViewById(R.id.lay_parametry).setVisibility(View.VISIBLE);
-                findViewById(R.id.lay_zestawienie).setVisibility(View.GONE);
+                layParameters.setVisibility(View.VISIBLE);
+                laySummary.setVisibility(View.GONE);
             }
         });
-
 
         ((Button)(findViewById(R.id.btn_up))).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                findViewById(R.id.lay_parametry).setVisibility(View.GONE);
-                findViewById(R.id.lay_zestawienie).setVisibility(View.VISIBLE);
+                layParameters.setVisibility(View.GONE);
+                laySummary.setVisibility(View.VISIBLE);
                 ustawParametry();
             }
         });
 
-        RadioGroup grupa1=(RadioGroup)findViewById(R.id.group1);
-        RadioGroup grupa2=(RadioGroup)findViewById(R.id.group2);
-        RadioGroup grupa3=(RadioGroup)findViewById(R.id.group3);
-        grupa1.setOnCheckedChangeListener(new CheckedChangeListener());
-        grupa2.setOnCheckedChangeListener(new CheckedChangeListener());
-        grupa3.setOnCheckedChangeListener(new CheckedChangeListener());
+        ((RadioGroup)findViewById(R.id.gr_income)).setOnCheckedChangeListener(new CheckedChangeListener());
+        ((RadioGroup)findViewById(R.id.gr_vat)).setOnCheckedChangeListener(new CheckedChangeListener());
+        ((RadioGroup)findViewById(R.id.gr_vat2)).setOnCheckedChangeListener(new CheckedChangeListener());
 
     }
 
@@ -324,8 +329,8 @@ public class MainActivity extends AppCompatActivity {
         float kwotaPodDoch=(brutto-vatOdliczony)*prPodDoch;
 
         odliczenia=vatOdliczony+kwotaPodDoch;
-        ((TextView)findViewById(R.id.tv_odliczenia)).setText(String.format("%1$,.2f", odliczenia));
-        ((TextView)findViewById(R.id.tv_koszt)).setText(String.format("%1$,.2f",brutto-odliczenia));
+        ((TextView)findViewById(R.id.tv_relief)).setText(String.format("%1$,.2f", odliczenia));
+        ((TextView)findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f",brutto-odliczenia));
 
     }
 
@@ -354,12 +359,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void odczytajZapisaneDane(){
-        prPodDoch= (float) (dao.getPrPodDoch()*0.01);
-        prVat= (float) (dao.getPrVat()*0.01);
+        prPodDoch= (float) (dao.getIncomeTax()*0.01);
+        prVat= (float) (dao.getVat()*0.01);
     }
 
     private void ustawParametry(){
-        TextView tvPD=(TextView)findViewById(R.id.tv_pd);
+        TextView tvPD=(TextView)findViewById(R.id.tv_income_tax);
         TextView tvVat=(TextView)findViewById(R.id.tv_vat);
         tvPD.setText(prPodDoch*100+"%");
         tvVat.setText(prVat*100+"%");
@@ -382,7 +387,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void zapiszParametry(){
-        dao.zapiszDane((int)(prVat*100),(int)(prPodDoch*100));
+        dao.saveTaxes((int)(prVat*100),(int)(prPodDoch*100));
     }
 
     @Override
@@ -715,7 +720,7 @@ public class MainActivity extends AppCompatActivity {
             final String regExp = "[0-9]+([,.][0-9]{1,2})?";
             final Pattern pattern = Pattern.compile(regExp);
             Matcher matcher = pattern.matcher(text);
-            System.out.println(text);
+            //System.out.println(text);
             //if (1==1){
             if(matcher.find()){
                 final String finalText = matcher.group(0);

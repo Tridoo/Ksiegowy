@@ -7,4 +7,6 @@ public class Config {
     static final int STATE_PREVIEW = 0;
     static final int STATE_WAIT_LOCK = 1;
 
+    static final String VAT="vat";
+    static final String INCOME_TAX="incomeTax";
 }

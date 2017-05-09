@@ -4,49 +4,49 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import static tridoo.ksiegowy.Config.INCOME_TAX;
+import static tridoo.ksiegowy.Config.VAT;
+
 
 public class Dao {
     private Context context;
-    private int prPodDoch;
-    private int prVat;
-    private boolean czySaDane;
+    private int incomeTax;
+    private int vat;
+    private boolean isTaxesSaved;
 
     public Dao(Context aContext) {
         context = aContext;
-        pobierzDane();
+        getData();
     }
 
-    private void pobierzDane(){
+    private void getData() {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        if(prefs.contains("vat")){
-            czySaDane=true;
-            prVat = prefs.getInt("vat",100);
-            prPodDoch = prefs.getInt("podDoch",18);
-        }else czySaDane=false;
+        if (prefs.contains(VAT)) {
+            isTaxesSaved = true;
+            vat = prefs.getInt(VAT, 100);
+            incomeTax = prefs.getInt(INCOME_TAX, 18);
+        } else isTaxesSaved = false;
     }
 
-    public void zapiszDane(int vat, int podDoch) {
+    public void saveTaxes(int vat, int incomeTax) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor editor = prefs.edit();
-
-        editor.putInt("vat", vat);
-        editor.putInt("podDoch", podDoch);
+        editor.putInt(VAT, vat);
+        editor.putInt(INCOME_TAX, incomeTax);
         editor.apply();
     }
 
 
-    public int getPrPodDoch() {
-        return prPodDoch;
+    public int getIncomeTax() {
+        return incomeTax;
     }
 
-
-    public int getPrVat() {
-        return prVat;
+    public int getVat() {
+        return vat;
     }
 
-    public boolean isCzySaDane() {
-        return czySaDane;
+    public boolean isTaxesSaved() {
+        return isTaxesSaved;
     }
-
 
 }

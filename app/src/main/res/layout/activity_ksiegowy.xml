@@ -24,90 +24,90 @@
             android:layout_below="@+id/baner">
 
             <LinearLayout
-                android:orientation="horizontal"
+                android:id="@+id/lay_summary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:visibility="visible"
-                android:id="@+id/lay_zestawienie"
-                android:elevation="1dp"
-                android:layout_marginTop="35dp"
                 android:layout_marginBottom="40dp"
+                android:layout_marginEnd="10dp"
                 android:layout_marginStart="10dp"
-                android:layout_marginEnd="10dp">
+                android:layout_marginTop="35dp"
+                android:elevation="1dp"
+                android:orientation="horizontal"
+                android:visibility="visible">
 
 
                 <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Podatek dochodowy:"
                     android:id="@+id/textView8"
-                    android:layout_weight="1" />
-
-
-                <TextView
-                    android:text="18%"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/tv_pd"
-                    android:layout_weight="2" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="VAT:"
-                    android:id="@+id/textView9"
                     android:layout_weight="1"
-                    android:gravity="center_horizontal" />
+                    android:text="Podatek dochodowy:" />
+
 
                 <TextView
-                    android:text="100%"
+                    android:id="@+id/tv_income_tax"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:text="18%" />
+
+                <TextView
+                    android:id="@+id/textView9"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center_horizontal"
+                    android:text="VAT:" />
+
+                <TextView
                     android:id="@+id/tv_vat"
-                    android:layout_weight="2" />
-
-                <TextView
-                    android:text="..."
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:text="100%" />
+
+                <TextView
                     android:id="@+id/btn_edit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:gravity="center"
+                    android:text="..."
                     android:textStyle="bold" />
 
 
             </LinearLayout>
 
             <GridLayout
+                android:id="@+id/lay_parameters"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/lay_parametry"
-                android:visibility="visible"
-                android:elevation="3dp"
-                android:rowCount="2"
-                android:columnCount="3"
-                android:orientation="horizontal"
-                android:layout_marginStart="10dp"
+                android:layout_marginBottom="10dp"
                 android:layout_marginEnd="10dp"
-                android:layout_marginBottom="10dp">
+                android:layout_marginStart="10dp"
+                android:columnCount="3"
+                android:elevation="3dp"
+                android:orientation="horizontal"
+                android:rowCount="2"
+                android:visibility="visible">
 
 
                 <TextView
+                    android:id="@+id/textView"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Podatek dochodowy"
-                    android:id="@+id/textView"
-                    android:layout_row="0"
                     android:layout_column="0"
-                    android:layout_gravity="center_vertical" />
+                    android:layout_gravity="center_vertical"
+                    android:layout_row="0"
+                    android:text="Podatek dochodowy" />
 
 
                 <RadioGroup
+                    android:id="@+id/gr_income"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_gravity="center_vertical"
-                    android:id="@+id/group1">
+                    android:orientation="horizontal">
 
 
                     <RadioButton
@@ -123,7 +123,7 @@
                         android:id="@+id/rb_19"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
+                        android:layout_marginStart="10dp"
                         android:text="19%"
                         ads:buttonTint="@color/rg" />
                 </RadioGroup>
@@ -133,28 +133,28 @@
                     android:id="@+id/btn_up"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="right"
+                    android:layout_gravity="end"
                     android:background="@android:color/transparent"
-                    android:gravity="right|center_vertical"
+                    android:gravity="center_vertical|end"
                     android:text="^     "
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/textView2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Podatek VAT"
-                    android:id="@+id/textView2"
                     android:layout_column="0"
+                    android:layout_gravity="center_vertical"
                     android:layout_row="1"
-                    android:layout_gravity="center_vertical" />
+                    android:text="Podatek VAT" />
 
 
                 <RadioGroup
+                    android:id="@+id/gr_vat"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_columnSpan="2"
-                    android:id="@+id/group2">
+                    android:orientation="horizontal">
 
 
                     <RadioButton
@@ -169,7 +169,7 @@
                         android:id="@+id/rb_50"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="17dp"
+                        android:layout_marginStart="17dp"
                         android:text="50%"
                         ads:buttonTint="@color/rg" />
 
@@ -178,7 +178,7 @@
                         android:id="@+id/rb_100"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="10dp"
+                        android:layout_marginStart="10dp"
                         android:checked="true"
                         android:text="100%"
                         ads:buttonTint="@color/rg" />
@@ -186,30 +186,29 @@
             </GridLayout>
 
             <LinearLayout
-                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/lay_vat_produktu"
-                android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
-                android:gravity="fill_horizontal">
+                android:layout_marginStart="10dp"
+                android:gravity="fill_horizontal"
+                android:orientation="horizontal">
 
                 <TextView
-                    android:text="VAT produktu: "
+                    android:id="@+id/textView5"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:id="@+id/textView5"
+                    android:layout_marginBottom="2dp"
+                    android:layout_marginTop="2dp"
                     android:layout_weight="0"
                     android:gravity="center"
-                    android:layout_marginTop="2dp"
-                    android:layout_marginBottom="2dp" />
+                    android:text="VAT produktu: " />
 
                 <RadioGroup
+                    android:id="@+id/gr_vat2"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_weight="3"
-                    android:orientation="horizontal"
-                    android:id="@+id/group3">
+                    android:orientation="horizontal">
 
                     <RadioButton
                         android:id="@+id/rb_p_0"
@@ -258,111 +257,110 @@
             android:layout_height="180dp" />
 
     <LinearLayout
-        android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_above="@+id/lay_buttons"
         android:layout_below="@+id/textureView"
-        android:layout_above="@+id/lay_przyciski">
+        android:orientation="vertical">
 
         <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:id="@+id/lay_brutto"
-                android:layout_below="@+id/textureView"
-            android:layout_weight="1"
-            android:layout_marginStart="10dp">
+            android:id="@+id/lay_gross"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
 
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Kwota brutto:"
-                    android:id="@+id/textView6"
-                    android:layout_marginLeft="5dp" />
-
-
-                <EditText
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    android:ems="10"
-                    android:id="@+id/e_brutto" />
-            </LinearLayout>
-
-        <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-            android:id="@+id/lay_odliczenia"
-                android:layout_below="@+id/lay_brutto"
-            android:layout_weight="1"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp">
+            android:layout_weight="1"
+            android:orientation="horizontal">
 
 
             <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Suma odliczeń:"
-                    android:id="@+id/textView4"
-                    android:layout_marginLeft="5dp" />
+                android:id="@+id/textView6"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:text="Kwota brutto:" />
 
 
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tv_odliczenia"
-                    android:layout_marginLeft="5dp" />
+            <EditText
+                android:id="@+id/e_gross"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:ems="8"
+                android:inputType="numberDecimal" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/lay_relief"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_weight="1"
+            android:orientation="horizontal">
+
+
+            <TextView
+                android:id="@+id/textView4"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:text="Suma odliczeń:" />
+
+
+            <TextView
+                android:id="@+id/tv_relief"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp" />
 
         </LinearLayout>
 
         <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-            android:id="@+id/lay_koszt"
-                android:layout_below="@+id/lay_odliczenia"
+            android:id="@+id/lay_cost"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="10dp"
             android:layout_weight="1"
-            android:layout_marginStart="10dp">
+            android:orientation="horizontal">
 
 
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Koszt końcowy:"
-                    android:id="@+id/textView3"
-                    android:layout_marginLeft="5dp" />
+            <TextView
+                android:id="@+id/textView3"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:text="Koszt końcowy:" />
 
 
-                <TextView
-                    android:layout_width="100dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/tv_koszt"
-                    android:layout_marginLeft="5dp" />
-            </LinearLayout>
+            <TextView
+                android:id="@+id/tv_cost"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp" />
+        </LinearLayout>
 
     </LinearLayout>
 
     <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="false"
-            android:layout_centerHorizontal="true"
-            android:layout_alignParentBottom="true"
-            android:id="@+id/lay_przyciski"
+        android:id="@+id/lay_buttons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_centerInParent="false"
+        android:layout_marginEnd="20dp"
         android:layout_marginStart="20dp"
-        android:layout_marginEnd="20dp">
+        android:orientation="horizontal">
 
 
-            <ToggleButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="New ToggleButton"
-                android:id="@+id/btn_podglad"
-                android:layout_weight="1"
-                android:layout_margin="5dp" />
+        <ToggleButton
+            android:id="@+id/tb_preview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:text="New ToggleButton" />
 
 
         <Space
@@ -371,17 +369,17 @@
             android:layout_weight="1" />
 
         <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="scan"
-                android:id="@+id/btn_skanuj"
-                android:layout_weight="1"
-                android:layout_margin="5dp" />
-        </LinearLayout>
+            android:id="@+id/btn_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:text="scan" />
+    </LinearLayout>
 
     <TextView
         android:layout_centerHorizontal="true"
-        android:id="@+id/ramka"
+        android:id="@+id/frame"
         android:background="@drawable/border"
         android:layout_alignTop="@+id/textureView"
         android:layout_width="180dp"
@@ -390,39 +388,39 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/z1"
+        android:id="@+id/smokescreen1"
         android:layout_alignBottom="@+id/textureView"
         android:layout_alignEnd="@+id/textureView"
         android:layout_alignStart="@+id/textureView"
-        android:layout_below="@+id/ramka"
+        android:layout_below="@+id/frame"
         android:background="@android:color/background_light"
         android:alpha="0.5"
         android:visibility="visible" />
 
     <TextView
+        android:id="@+id/smokescreen2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/z2"
-        android:layout_above="@+id/z1"
-        android:layout_alignTop="@+id/textureView"
-        android:layout_toLeftOf="@+id/ramka"
+        android:layout_above="@+id/smokescreen1"
         android:layout_alignStart="@+id/textureView"
-        android:background="@android:color/background_light"
-        android:alpha="0.5" />
+        android:layout_alignTop="@+id/textureView"
+        android:layout_toStartOf="@+id/frame"
+        android:alpha="0.5"
+        android:background="@android:color/background_light" />
 
     <TextView
+        android:id="@+id/smokescreen3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/z3"
-        android:layout_alignTop="@+id/textureView"
+        android:layout_above="@+id/smokescreen1"
         android:layout_alignEnd="@+id/textureView"
-        android:layout_above="@+id/z1"
-        android:background="@android:color/background_light"
+        android:layout_alignTop="@+id/textureView"
+        android:layout_toEndOf="@+id/frame"
         android:alpha="0.5"
-        android:layout_toRightOf="@+id/ramka" />
+        android:background="@android:color/background_light" />
 
     <TextView
-        android:id="@+id/zaslona"
+        android:id="@+id/tv_curtain"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_alignBottom="@+id/textureView"
