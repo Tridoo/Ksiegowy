@@ -6,6 +6,8 @@ public class Config {
     static final int REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT = 1;
     static final int STATE_PREVIEW = 0;
     static final int STATE_WAIT_LOCK = 1;
+    final static int SCALE_X =2;
+    final static int SCALE_Y =4;
 
     static final String VAT="vat";
     static final String INCOME_TAX="incomeTax";

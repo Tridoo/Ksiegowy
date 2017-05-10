@@ -27,19 +27,11 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Size;
 import android.util.SparseArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.GridLayout;
-import android.widget.LinearLayout;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -64,18 +56,20 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static tridoo.ksiegowy.Config.SCALE_X;
+import static tridoo.ksiegowy.Config.SCALE_Y;
+
 public class MainActivity extends AppCompatActivity {
 
     private int mCaptureState;
-    private TextureView mTextureView;
+    private TextureView textureView;
     private ToggleButton btnPreview;
     private TextRecognizer textRecognizer;
-    private EditText eGross;
+    //private EditText eGross;
     private ContentResolver contentResolver;
     private float incomeTax, vatRelief, articleVat;
     private Dao dao;
-    private int SX=2;
-    private int SY=4;
+
 
     private TextureView.SurfaceTextureListener mSurfaceTextureListener ;
     private CameraDevice mCameraDevice;
@@ -93,12 +87,14 @@ public class MainActivity extends AppCompatActivity {
 
     private CaptureRequest.Builder mCaptureRequestBuilder;
 
-    private Button btnScan;
-    private GridLayout layParameters;
-    private LinearLayout laySummary;
+    //private Button btnScan;
+    //private GridLayout layParameters;
+    //private LinearLayout laySummary;
 
     private File mImageFolder;
     private String mImageFileName;
+
+    private ScreenController screenController;
 
 
     @Override
@@ -107,16 +103,17 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_ksiegowy);
 
         init();
-        setupButtons();
+        screenController=new ScreenController(this);
+        screenController.setupButtons();
 
-        createImageFolder();
+        createImageFolder(); //??
 
         if (dao.isTaxesSaved()){
             readSavedParameters();
-            setupParameters();
-            layParameters.setVisibility(View.GONE);
+            screenController.setupParameters();
+            screenController.getLayParameters().setVisibility(View.GONE);
         }else{
-            laySummary.setVisibility(View.GONE);
+            screenController.getLaySummary().setVisibility(View.GONE);
         }
 
         //showAds();
@@ -130,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
                 Matrix matrix = new Matrix();
 
-                matrix.setScale(SX, SY,width/2,height/2); //todo jaki zoom?
-                mTextureView.setTransform(matrix);
+                matrix.setScale(SCALE_X, SCALE_Y,width/2,height/2); //todo jaki zoom?
+                textureView.setTransform(matrix);
 
                 setupCamera(width, height);
                 connectCamera();
@@ -210,7 +207,7 @@ public class MainActivity extends AppCompatActivity {
         contentResolver=this.getContentResolver();
         dao=new Dao(getApplicationContext());
 
-        mTextureView = (TextureView) findViewById(R.id.textureView);
+        textureView = (TextureView) findViewById(R.id.textureView);
 
         textRecognizer=new TextRecognizer.Builder(getApplicationContext()).build();
         textRecognizer.setProcessor(new Detector.Processor<TextBlock>() { //potrzebne?
@@ -238,117 +235,21 @@ public class MainActivity extends AppCompatActivity {
                 }*/
             }
         });
-
-        TextWatcher watcher= new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-                if (!eGross.getText().toString().equals("")) {
-                    calculate();
-                }
-            }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                //Do something or nothing.
-            }
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //Do something or nothing
-            }
-        };
-
-        eGross = (EditText) findViewById(R.id.e_gross);
-        eGross.addTextChangedListener(watcher);
-
-        layParameters=(GridLayout)findViewById(R.id.lay_parameters);
-        laySummary=(LinearLayout)findViewById(R.id.lay_summary);
     }
 
-    private void setupButtons(){
-        btnScan = (Button) findViewById(R.id.btn_scan);
-        btnScan.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                checkWriteStoragePermission();
-                lockFocus();
-            }
-        });
-
-        btnPreview =(ToggleButton) findViewById(R.id.tb_preview);
-        btnPreview.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                View curtain= findViewById(R.id.tv_curtain);                
-                if (((ToggleButton)v).isChecked()){
-                    closeCamera();
-                    stopBackgroundThread();
-                    curtain.setVisibility(View.VISIBLE);
-                }else{
-                    startBackgroundThread();
-                    setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
-                    connectCamera();
-                    curtain.setVisibility(View.INVISIBLE);
-                }
-            }
-        });
 
 
-
-        ((TextView)(findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                layParameters.setVisibility(View.VISIBLE);
-                laySummary.setVisibility(View.GONE);
-            }
-        });
-
-        ((Button)(findViewById(R.id.btn_up))).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                layParameters.setVisibility(View.GONE);
-                laySummary.setVisibility(View.VISIBLE);
-                setupParameters();
-            }
-        });
-
-        ((RadioGroup)findViewById(R.id.gr_income)).setOnCheckedChangeListener(new CheckedChangeListener());
-        ((RadioGroup)findViewById(R.id.gr_vat)).setOnCheckedChangeListener(new CheckedChangeListener());
-        ((RadioGroup)findViewById(R.id.gr_vat2)).setOnCheckedChangeListener(new CheckedChangeListener());
-
-    }
-
-    private void readCheckedParameters(){
-        vatRelief = getVatRelief();
-        incomeTax = getIncomeTax();
-        articleVat = getArticleVat();
-    }
-
-    private void calculate(){
+    public void calculate(){
         float reliefAmount;
-        String sGross= eGross.getText().toString();
-        float grossAmount = sGross.isEmpty() ? 0 : Float.valueOf(sGross.replace(",", "."));
-        float vatAmount=grossAmount-grossAmount/(1+ articleVat);
-        float vatReliefAmount=vatAmount* vatRelief;
-        float incomeTaxAmount=(grossAmount-vatReliefAmount)* incomeTax;
+        float grossAmount = screenController.getGross();
+        float vatAmount=grossAmount-grossAmount/(1+ screenController.getArticleVat());
+        float vatReliefAmount=vatAmount* screenController.getVatRelief();
+        float incomeTaxAmount=(grossAmount-vatReliefAmount)* screenController.getIncomeTax();
 
         reliefAmount=vatReliefAmount+incomeTaxAmount;
         ((TextView)findViewById(R.id.tv_relief)).setText(String.format("%1$,.2f", reliefAmount));
         ((TextView)findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f",grossAmount-reliefAmount));
 
-    }
-
-    private float getArticleVat(){
-        if(((RadioButton)findViewById(R.id.rb_p_0)).isChecked()) return 0f;
-        if(((RadioButton)findViewById(R.id.rb_p_5)).isChecked()) return 0.05f;
-        if(((RadioButton)findViewById(R.id.rb_p_8)).isChecked()) return 0.08f;
-        return 0.23f;
-    }
-
-    private float getVatRelief(){
-        if(((RadioButton)findViewById(R.id.rb_0)).isChecked()) return 0f;
-        if(((RadioButton)findViewById(R.id.rb_50)).isChecked()) return 0.5f;
-        return 1;
-    }
-
-    private float getIncomeTax(){
-        if(((RadioButton)findViewById(R.id.rb_18)).isChecked()) return 0.18f;
-        else return 0.19f;
     }
 
     private void showAds(){
@@ -362,29 +263,8 @@ public class MainActivity extends AppCompatActivity {
         vatRelief = (float) (dao.getVat()*0.01);
     }
 
-    private void setupParameters(){
-        ((TextView)findViewById(R.id.tv_income_tax)).setText(incomeTax *100+"%");
-        ((TextView)findViewById(R.id.tv_vat)).setText(vatRelief *100+"%");
-
-        if (incomeTax == 0.18f) {
-            ((RadioButton) findViewById(R.id.rb_18)).setChecked(true);
-        } else {
-            ((RadioButton) findViewById(R.id.rb_19)).setChecked(true);
-        }
-
-        if (vatRelief == 0f) {
-            ((RadioButton) findViewById(R.id.rb_0)).setChecked(true);
-
-        } else if (vatRelief == 0.5f) {
-            ((RadioButton) findViewById(R.id.rb_50)).setChecked(true);
-
-        } else  {
-            ((RadioButton) findViewById(R.id.rb_100)).setChecked(true);
-        }
-    }
-
-    private void saveParameters(){
-        dao.saveTaxes((int)(vatRelief *100),(int)(incomeTax *100));
+    public void saveParameters(){
+        dao.saveTaxes((int)(screenController.getVatRelief() *100),(int)(screenController.getIncomeTax() *100));
     }
 
     @Override
@@ -392,11 +272,11 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         startBackgroundThread();
 
-        if (mTextureView.isAvailable()) {
-            setupCamera(mTextureView.getWidth(), mTextureView.getHeight());
+        if (textureView.isAvailable()) {
+            setupCamera(textureView.getWidth(), textureView.getHeight());
             connectCamera();
         } else {
-            mTextureView.setSurfaceTextureListener(mSurfaceTextureListener);
+            textureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
     }
 
@@ -448,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupCamera(int width, int height) {
+    public void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : cameraManager.getCameraIdList()) {
@@ -471,7 +351,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void connectCamera() {
+    public void connectCamera() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -496,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startPreview() {
-        SurfaceTexture surfaceTexture = mTextureView.getSurfaceTexture();
+        SurfaceTexture surfaceTexture = textureView.getSurfaceTexture();
         surfaceTexture.setDefaultBufferSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
         Surface previewSurface = new Surface(surfaceTexture);
 
@@ -557,20 +437,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void closeCamera() {
+    public void closeCamera() {
         if (mCameraDevice != null) {
             mCameraDevice.close();
             mCameraDevice = null;
         }
     }
 
-    private void startBackgroundThread() {
+    public void startBackgroundThread() {
         mBackgroundHandlerThread = new HandlerThread("Camera2VideoImage");
         mBackgroundHandlerThread.start();
         mBackgroundHandler = new Handler(mBackgroundHandlerThread.getLooper());
     }
 
-    private void stopBackgroundThread() {
+    public void stopBackgroundThread() {
         mBackgroundHandlerThread.quitSafely();
         try {
             mBackgroundHandlerThread.join();
@@ -620,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
         return imageFile;
     }
 
-    private void checkWriteStoragePermission() {
+    public void checkWriteStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
                     == PackageManager.PERMISSION_GRANTED) {
@@ -636,7 +516,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void lockFocus() {
+    public void lockFocus() {
         if(mBackgroundHandler==null)return;
         mCaptureState = Config.STATE_WAIT_LOCK;
         mCaptureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
@@ -646,6 +526,83 @@ public class MainActivity extends AppCompatActivity {
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    private Bitmap getBmp( Image image){
+            Bitmap result;
+            int targetImageViewWidth = image.getWidth();
+            int targetImageViewHeight = image.getHeight();
+
+            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
+            bmOptions.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(mImageFileName, bmOptions);
+            int cameraImageWidth = bmOptions.outWidth;
+            int cameraImageHeight = bmOptions.outHeight;
+
+            int scaleFactor = Math.min(cameraImageWidth/targetImageViewWidth, cameraImageHeight/targetImageViewHeight);
+            bmOptions.inSampleSize = scaleFactor;
+            bmOptions.inJustDecodeBounds = false;
+
+            Bitmap photoReducedSizeBitmp = BitmapFactory.decodeFile(mImageFileName, bmOptions);
+
+            int width=photoReducedSizeBitmp.getWidth();
+            int height=photoReducedSizeBitmp.getHeight();
+
+            int scaledWidth = width/ SCALE_X;
+            int scaledHeight = height / SCALE_Y;
+
+            int dx = (int)((width-scaledWidth)*0.5);
+            int dy =(int)((height-scaledHeight)*0.5);
+            dx=dx+scaledWidth/4;//wycinek podgladu
+
+            result=Bitmap.createBitmap(photoReducedSizeBitmp, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
+
+            return result;
+        }
+
+    public void setIncomeTax(float incomeTax) {
+        this.incomeTax = incomeTax;
+    }
+
+    public void setVatRelief(float vatRelief) {
+        this.vatRelief = vatRelief;
+    }
+
+    public void setArticleVat(float articleVat) {
+        this.articleVat = articleVat;
+    }
+
+    public float getIncomeTax() {
+        return incomeTax;
+    }
+
+    public float getVatRelief() {
+        return vatRelief;
+    }
+
+    public float getArticleVat() {
+        return articleVat;
+    }
+
+    public TextureView getTextureView() {
+        return textureView;
+    }
+
+    private Bitmap cropBitmap(Bitmap bitmap){
+        Bitmap result;
+        int width=bitmap.getWidth();
+        int height=bitmap.getHeight();
+
+        int scaledWidth = width/ SCALE_X;
+        int scaledHeight = height / SCALE_Y;
+
+        int dx = (int)((width-scaledWidth)*0.5);
+        int dy =(int)((height-scaledHeight)*0.5);
+        dx=dx+scaledWidth/4;//wycinek podgladu
+
+        result=Bitmap.createBitmap(bitmap, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
+
+        return result;
     }
 
     private static class CompareSizeByArea implements Comparator<Size> {
@@ -719,72 +676,16 @@ public class MainActivity extends AppCompatActivity {
             if(matcher.find()){
                 final String finalText = matcher.group(0);
                 //final String finalText = text;
-                eGross.post(new Runnable() {
+                screenController.geteGross().post(new Runnable() {
                     @Override
                     public void run() {
-                        eGross.setText(finalText);
+                        screenController.geteGross().setText(finalText);
                     }
                 });
 
             }
-            }
-        }
-
-    private Bitmap getBmp( Image image){
-            Bitmap result;
-            int targetImageViewWidth = image.getWidth();
-            int targetImageViewHeight = image.getHeight();
-
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            bmOptions.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(mImageFileName, bmOptions);
-            int cameraImageWidth = bmOptions.outWidth;
-            int cameraImageHeight = bmOptions.outHeight;
-
-            int scaleFactor = Math.min(cameraImageWidth/targetImageViewWidth, cameraImageHeight/targetImageViewHeight);
-            bmOptions.inSampleSize = scaleFactor;
-            bmOptions.inJustDecodeBounds = false;
-
-            Bitmap photoReducedSizeBitmp = BitmapFactory.decodeFile(mImageFileName, bmOptions);
-
-            int width=photoReducedSizeBitmp.getWidth();
-            int height=photoReducedSizeBitmp.getHeight();
-
-            int scaledWidth = width/SX ;
-            int scaledHeight = height / SY;
-
-            int dx = (int)((width-scaledWidth)*0.5);
-            int dy =(int)((height-scaledHeight)*0.5);
-            dx=dx+scaledWidth/4;//wycinek podgladu
-
-            result=Bitmap.createBitmap(photoReducedSizeBitmp, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
-
-            return result;
-        }
-
-    private Bitmap cropBitmap(Bitmap bitmap){
-        Bitmap result;
-        int width=bitmap.getWidth();
-        int height=bitmap.getHeight();
-
-        int scaledWidth = width/SX ;
-        int scaledHeight = height / SY;
-
-        int dx = (int)((width-scaledWidth)*0.5);
-        int dy =(int)((height-scaledHeight)*0.5);
-        dx=dx+scaledWidth/4;//wycinek podgladu
-
-        result=Bitmap.createBitmap(bitmap, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
-
-        return result;
-    }
-
-    private class CheckedChangeListener implements RadioGroup.OnCheckedChangeListener {
-        @Override
-        public void onCheckedChanged(RadioGroup group, int checkedId) {
-            readCheckedParameters();
-            calculate();
-            saveParameters();
         }
     }
+
+
 }
