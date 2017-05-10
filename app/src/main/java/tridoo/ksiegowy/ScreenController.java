@@ -67,7 +67,7 @@ public class ScreenController {
             public void onClick(View v) {
                 layParameters.setVisibility(View.GONE);
                 laySummary.setVisibility(View.VISIBLE);
-                //setupParameters(); //todo pootrzebne?
+                setupParameters(); //todo pootrzebne?
             }
         });
 

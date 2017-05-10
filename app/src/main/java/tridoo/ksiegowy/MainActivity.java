@@ -451,6 +451,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void stopBackgroundThread() {
+        if (mBackgroundHandlerThread==null) return;
         mBackgroundHandlerThread.quitSafely();
         try {
             mBackgroundHandlerThread.join();
