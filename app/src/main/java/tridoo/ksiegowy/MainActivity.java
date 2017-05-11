@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     private Dao dao;
 
 
-    private TextureView.SurfaceTextureListener mSurfaceTextureListener ;
+     TextureView.SurfaceTextureListener mSurfaceTextureListener ;
     private CameraDevice mCameraDevice;
     private CameraDevice.StateCallback mCameraDeviceStateCallback ;
     private HandlerThread mBackgroundHandlerThread;
@@ -116,7 +116,9 @@ public class MainActivity extends AppCompatActivity {
             screenController.getLaySummary().setVisibility(View.GONE);
         }
 
-        //showAds();
+        showAds();
+        //todo hide keyboard
+        //todo ukrywanie elementow przy klawiaturze
     }
 
     private void init(){
@@ -132,6 +134,9 @@ public class MainActivity extends AppCompatActivity {
 
                 setupCamera(width, height);
                 connectCamera();
+                //todo resize texture + ramka screenControler
+                textureView.getLayoutParams().height= (int) (width*0.6);
+
             }
 
             @Override
