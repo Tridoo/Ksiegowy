@@ -241,8 +241,6 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-
-
     public void calculate(){
         float reliefAmount;
         float grossAmount = screenController.getGross();
@@ -282,6 +280,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             textureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
+
+        screenController.hideKeyboard();
     }
 
     @Override
