@@ -134,8 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
                 setupCamera(width, height);
                 connectCamera();
-                //todo resize texture + ramka screenControler
-                textureView.getLayoutParams().height= (int) (width*0.6);
+                screenController.resizeElements(width, height);
 
             }
 

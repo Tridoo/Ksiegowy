@@ -4,6 +4,7 @@ package tridoo.ksiegowy;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
@@ -74,7 +75,8 @@ public class ScreenController {
         ((RadioGroup)activity.findViewById(R.id.gr_income)).setOnCheckedChangeListener(new CheckedChangeListener());
         ((RadioGroup)activity.findViewById(R.id.gr_vat)).setOnCheckedChangeListener(new CheckedChangeListener());
         ((RadioGroup)activity.findViewById(R.id.gr_vat2)).setOnCheckedChangeListener(new CheckedChangeListener());
-
+//wyrównanie RB grup
+        //http://stackoverflow.com/questions/2381560/how-to-group-a-3x3-grid-of-radio-buttons
 
 
         TextWatcher watcher= new TextWatcher() {
@@ -91,6 +93,14 @@ public class ScreenController {
             }
         };
         eGross.addTextChangedListener(watcher);
+    }
+
+    public void resizeElements(int width, int height){
+        activity.getTextureView().getLayoutParams().height= (int) (width*0.6);
+        ViewGroup.LayoutParams params= activity.findViewById(R.id.frame).getLayoutParams();
+        params.width=width/2;
+        params.height=width/3;
+
     }
 
     public void readCheckedParameters(){
