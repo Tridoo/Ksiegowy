@@ -9,11 +9,12 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Switch;
 import android.widget.TextView;
-import android.widget.ToggleButton;
 
 public class ScreenController {
     private MainActivity activity;
@@ -30,7 +31,7 @@ public class ScreenController {
         laySummary=(LinearLayout)activity.findViewById(R.id.lay_summary);
         eGross = (EditText) activity.findViewById(R.id.e_gross);
 
-        ((Button) activity.findViewById(R.id.btn_scan)).setOnClickListener(new View.OnClickListener() {
+        ((ImageButton) activity.findViewById(R.id.btn_scan)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 activity.checkWriteStoragePermission();
@@ -38,11 +39,11 @@ public class ScreenController {
             }
         });
 
-        ((ToggleButton) activity.findViewById(R.id.tb_preview)).setOnClickListener(new View.OnClickListener() {
+        ((Switch) activity.findViewById(R.id.sw_preview)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 View curtain= activity.findViewById(R.id.tv_curtain);
-                if (((ToggleButton)v).isChecked()){
+                if (!((Switch)v).isChecked()){
                     activity.closeCamera();
                     activity.stopBackgroundThread();
                     curtain.setVisibility(View.VISIBLE);
@@ -97,10 +98,10 @@ public class ScreenController {
     }
 
     public void resizeElements(int width, int height){
-        activity.getTextureView().getLayoutParams().height= (int) (width*0.6);
+        activity.getTextureView().getLayoutParams().height= (int) (width*0.5);
         ViewGroup.LayoutParams params= activity.findViewById(R.id.frame).getLayoutParams();
         params.width=width/2;
-        params.height=width/3;
+        params.height=width/4;
 
     }
 

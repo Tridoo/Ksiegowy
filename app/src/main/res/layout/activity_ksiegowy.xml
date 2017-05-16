@@ -7,267 +7,283 @@
         android:layout_height="match_parent">
 
     <com.google.android.gms.ads.AdView
-        ads:adSize="BANNER"
-        ads:adUnitId="@string/banner_ad_unit_id"
         android:id="@+id/baner"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
 
-        android:layout_centerHorizontal="true" />
+        android:elevation="0dp"
+        ads:adSize="BANNER"
+        ads:adUnitId="@string/banner_ad_unit_id" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/textureView"
+        android:layout_below="@+id/baner"
+        android:elevation="0dp"
+        android:gravity="center"
+        android:orientation="vertical">
 
         <LinearLayout
-            android:orientation="vertical"
+            android:id="@+id/lay_summary"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/textureView"
-            android:gravity="center"
-            android:layout_below="@+id/baner">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="50dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal"
+            android:visibility="visible">
 
-            <LinearLayout
-                android:id="@+id/lay_summary"
-                android:layout_width="match_parent"
+
+            <TextView
+                android:id="@+id/textView8"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="40dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
-                android:layout_marginTop="35dp"
-                android:elevation="1dp"
-                android:orientation="horizontal"
-                android:visibility="visible">
+                android:layout_weight="1"
+                android:text="Podatek dochodowy:" />
 
 
-                <TextView
-                    android:id="@+id/textView8"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Podatek dochodowy:" />
-
-
-                <TextView
-                    android:id="@+id/tv_income_tax"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:text="18%" />
-
-                <TextView
-                    android:id="@+id/textView9"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center_horizontal"
-                    android:text="VAT:" />
-
-                <TextView
-                    android:id="@+id/tv_vat"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:text="100%" />
-
-                <TextView
-                    android:id="@+id/btn_edit"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="..."
-                    android:textStyle="bold" />
-
-
-            </LinearLayout>
-
-            <GridLayout
-                android:id="@+id/lay_parameters"
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/tv_income_tax"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="10dp"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
-                android:columnCount="3"
-                android:elevation="3dp"
-                android:orientation="horizontal"
-                android:rowCount="2"
-                android:visibility="visible">
+                android:layout_weight="2"
+                android:text="18%" />
 
-
-                <TextView
-                    android:id="@+id/textView"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_gravity="center_vertical"
-                    android:layout_row="0"
-                    android:text="Podatek dochodowy" />
-
-
-                <RadioGroup
-                    android:id="@+id/gr_income"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:orientation="horizontal">
-
-
-                    <RadioButton
-                        android:id="@+id/rb_18"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:checked="true"
-                        android:text="18%"
-                        ads:buttonTint="@color/green" />
-
-
-                    <RadioButton
-                        android:id="@+id/rb_19"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:text="19%"
-                        ads:buttonTint="@color/green" />
-                </RadioGroup>
-
-
-                <Button
-                    android:id="@+id/btn_up"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:background="@android:color/transparent"
-                    android:gravity="center_vertical|end"
-                    android:text="^     "
-                    android:textStyle="bold" />
-
-                <TextView
-                    android:id="@+id/textView2"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_column="0"
-                    android:layout_gravity="center_vertical"
-                    android:layout_row="1"
-                    android:text="Podatek VAT" />
-
-
-                <RadioGroup
-                    android:id="@+id/gr_vat"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_columnSpan="2"
-                    android:orientation="horizontal">
-
-
-                    <RadioButton
-                        android:id="@+id/rb_0"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0%"
-                        ads:buttonTint="@color/green" />
-
-
-                    <RadioButton
-                        android:id="@+id/rb_50"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="17dp"
-                        android:text="50%"
-                        ads:buttonTint="@color/green" />
-
-
-                    <RadioButton
-                        android:id="@+id/rb_100"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp"
-                        android:checked="true"
-                        android:text="100%"
-                        ads:buttonTint="@color/green" />
-                </RadioGroup>
-            </GridLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
+            <TextView
+                android:id="@+id/textView9"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="10dp"
-                android:layout_marginStart="10dp"
-                android:gravity="fill_horizontal"
-                android:orientation="horizontal">
+                android:layout_weight="1"
+                android:gravity="center_horizontal"
+                android:text="VAT:" />
 
-                <TextView
-                    android:id="@+id/textView5"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginBottom="2dp"
-                    android:layout_marginTop="2dp"
-                    android:layout_weight="0"
-                    android:gravity="center"
-                    android:text="VAT produktu: " />
+            <TextView
+                android:id="@+id/tv_vat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="100%" />
 
-                <RadioGroup
-                    android:id="@+id/gr_vat2"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="3"
-                    android:orientation="horizontal">
+            <TextView
+                android:id="@+id/btn_edit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="..."
+                android:textStyle="bold" />
 
-                    <RadioButton
-                        android:id="@+id/rb_p_0"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="0%"
-                        ads:buttonTint="@color/green" />
-
-                    <RadioButton
-                        android:id="@+id/rb_p_5"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="5%"
-                        ads:buttonTint="@color/green" />
-
-                    <RadioButton
-                        android:id="@+id/rb_p_8"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="8%"
-                        ads:buttonTint="@color/green" />
-
-                    <RadioButton
-                        android:id="@+id/rb_p_23"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:checked="true"
-                        android:text="23%"
-                        ads:buttonTint="@color/green" />
-
-                </RadioGroup>
-
-            </LinearLayout>
 
         </LinearLayout>
 
-        <TextureView
-            android:layout_width="wrap_content"
-            android:id="@+id/textureView"
-            android:layout_centerInParent="true"
-            android:layout_margin="10dp"
-            android:layout_height="180dp" />
+        <GridLayout
+            android:id="@+id/lay_parameters"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:columnCount="3"
+            android:orientation="horizontal"
+            android:rowCount="2">
+
+
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_vertical"
+                android:layout_row="0"
+                android:text="Podatek dochodowy" />
+
+
+            <RadioGroup
+                android:id="@+id/gr_income"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:layout_columnWeight="2"
+                android:layout_gravity="center_vertical"
+                android:layout_row="0"
+                android:orientation="horizontal">
+
+
+                <RadioButton
+                    android:id="@+id/rb_18"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="18%"
+                    ads:buttonTint="@color/green" />
+
+
+                <RadioButton
+                    android:id="@+id/rb_19"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="19%"
+                    ads:buttonTint="@color/green" />
+
+            </RadioGroup>
+
+
+            <Button
+                android:id="@+id/btn_up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="2"
+                android:layout_columnWeight="1"
+                android:layout_gravity="end"
+                android:layout_row="0"
+                android:background="@android:color/transparent"
+                android:gravity="center_vertical|end"
+                android:text="^     "
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/textView2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="0"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_vertical"
+                android:layout_row="1"
+                android:text="Podatek VAT" />
+
+
+            <RadioGroup
+                android:id="@+id/gr_vat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_column="1"
+                android:layout_columnSpan="2"
+                android:layout_columnWeight="1"
+                android:layout_row="1"
+                android:orientation="horizontal">
+
+
+                <RadioButton
+                    android:id="@+id/rb_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="0% "
+                    ads:buttonTint="@color/green" />
+
+
+                <RadioButton
+                    android:id="@+id/rb_50"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="50%"
+                    ads:buttonTint="@color/green" />
+
+
+                <RadioButton
+                    android:id="@+id/rb_100"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="100%"
+                    ads:buttonTint="@color/green" />
+            </RadioGroup>
+
+        </GridLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            android:gravity="fill_horizontal"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/textView5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:layout_marginTop="2dp"
+                android:layout_weight="4"
+                android:text="VAT produktu: " />
+
+            <RadioGroup
+                android:id="@+id/gr_vat2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:orientation="horizontal">
+
+                <RadioButton
+                    android:id="@+id/rb_p_0"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="0%"
+                    ads:buttonTint="@color/green" />
+
+                <RadioButton
+                    android:id="@+id/rb_p_5"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="5%"
+                    ads:buttonTint="@color/green" />
+
+                <RadioButton
+                    android:id="@+id/rb_p_8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="8%"
+                    ads:buttonTint="@color/green" />
+
+                <RadioButton
+                    android:id="@+id/rb_p_23"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="23%"
+                    ads:buttonTint="@color/green" />
+
+            </RadioGroup>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="wrap_content"
+        android:layout_height="180dp"
+        android:layout_centerInParent="true"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:elevation="0dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/lay_buttons"
         android:layout_below="@+id/textureView"
+
+        android:elevation="2dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:id="@+id/lay_gross"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-
             android:layout_marginStart="10dp"
             android:layout_weight="1"
             android:orientation="horizontal">
@@ -347,54 +363,61 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:layout_centerInParent="false"
-        android:layout_marginEnd="20dp"
-        android:layout_marginStart="20dp"
+        android:elevation="0dp"
+        android:gravity="center_vertical"
         android:orientation="horizontal">
 
 
-        <ToggleButton
-            android:id="@+id/tb_preview"
+        <Switch
+            android:id="@+id/sw_preview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:layout_weight="1"
-            android:text="New ToggleButton" />
+            android:checked="true"
+            android:scaleX="1.5"
+            android:scaleY="1.5"
+            android:textColorLink="@color/green" />
 
 
         <Space
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1" />
+            android:layout_weight="4" />
 
-        <Button
+        <ImageButton
             android:id="@+id/btn_scan"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:layout_weight="1"
-            android:text="scan" />
+            android:layout_marginBottom="5dp"
+            android:layout_marginEnd="25dp"
+            android:layout_weight="2"
+            android:background="@null"
+            android:src="@mipmap/camera" />
+
     </LinearLayout>
 
     <TextView
-        android:layout_centerHorizontal="true"
         android:id="@+id/frame"
-        android:background="@drawable/border"
-        android:layout_alignTop="@+id/textureView"
         android:layout_width="180dp"
-        android:layout_height="90dp" />
+        android:layout_height="90dp"
+        android:layout_alignTop="@+id/textureView"
+        android:layout_centerHorizontal="true"
+        android:background="@drawable/border"
+        android:elevation="1dp" />
 
     <TextView
+        android:id="@+id/smokescreen1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/smokescreen1"
         android:layout_alignBottom="@+id/textureView"
         android:layout_alignEnd="@+id/textureView"
         android:layout_alignStart="@+id/textureView"
         android:layout_below="@+id/frame"
-        android:background="@android:color/background_light"
         android:alpha="0.5"
+        android:background="@android:color/background_light"
+        android:elevation="1dp"
         android:visibility="visible" />
 
     <TextView
@@ -406,7 +429,8 @@
         android:layout_alignTop="@+id/textureView"
         android:layout_toStartOf="@+id/frame"
         android:alpha="0.5"
-        android:background="@android:color/background_light" />
+        android:background="@android:color/background_light"
+        android:elevation="1dp" />
 
     <TextView
         android:id="@+id/smokescreen3"
@@ -417,7 +441,8 @@
         android:layout_alignTop="@+id/textureView"
         android:layout_toEndOf="@+id/frame"
         android:alpha="0.5"
-        android:background="@android:color/background_light" />
+        android:background="@android:color/background_light"
+        android:elevation="1dp" />
 
     <TextView
         android:id="@+id/tv_curtain"
@@ -429,6 +454,7 @@
         android:layout_alignTop="@+id/textureView"
         android:layout_centerVertical="true"
         android:background="@android:color/black"
+        android:elevation="2dp"
         android:visibility="invisible" />
 
 </RelativeLayout>
