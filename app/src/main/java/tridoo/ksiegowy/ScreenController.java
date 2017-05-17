@@ -6,7 +6,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageButton;
@@ -39,11 +39,11 @@ public class ScreenController {
             }
         });
 
-        ((Switch) activity.findViewById(R.id.sw_preview)).setOnClickListener(new View.OnClickListener() {
+        ((Switch) activity.findViewById(R.id.sw_preview)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
-            public void onClick(View v) {
+            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
                 View curtain= activity.findViewById(R.id.tv_curtain);
-                if (!((Switch)v).isChecked()){
+                if (!isChecked){
                     activity.closeCamera();
                     activity.stopBackgroundThread();
                     curtain.setVisibility(View.VISIBLE);
@@ -53,11 +53,12 @@ public class ScreenController {
                     activity.connectCamera();
                     curtain.setVisibility(View.INVISIBLE);
                 }
+
             }
         });
 
 
-        ((TextView)(activity.findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
+        ((activity.findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 layParameters.setVisibility(View.VISIBLE);
@@ -65,7 +66,7 @@ public class ScreenController {
             }
         });
 
-        ((Button)(activity.findViewById(R.id.btn_up))).setOnClickListener(new View.OnClickListener() {
+        ((activity.findViewById(R.id.btn_up))).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 layParameters.setVisibility(View.GONE);
