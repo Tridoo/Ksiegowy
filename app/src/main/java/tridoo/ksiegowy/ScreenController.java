@@ -1,10 +1,15 @@
 package tridoo.ksiegowy;
 
 
+import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.DisplayMetrics;
+import android.util.TypedValue;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -35,7 +40,7 @@ public class ScreenController {
             @Override
             public void onClick(View v) {
                 activity.checkWriteStoragePermission();
-                activity.lockFocus();
+                activity.capture();
             }
         });
 
@@ -84,9 +89,7 @@ public class ScreenController {
 
         TextWatcher watcher= new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                if (!eGross.getText().toString().equals("")) {
                     activity.calculate();
-                }
             }
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 //Do something or nothing.
@@ -98,12 +101,34 @@ public class ScreenController {
         eGross.addTextChangedListener(watcher);
     }
 
-    public void resizeElements(int width, int height){
+    public void keyboardObserver(final Context context, final TextureView textureView){
+        final View activityRootView = activity.findViewById(R.id.lay_root);
+        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                int heightDiff = activityRootView.getRootView().getHeight() - activityRootView.getHeight();
+                if (heightDiff > dpToPx(context, 200)) {
+                    activity.findViewById(R.id.lay_buttons).setVisibility(View.GONE);
+                    resizeElements(10,1); //nie chować !!
+                }
+                else {
+                    activity.findViewById(R.id.lay_buttons).setVisibility(View.VISIBLE);
+                    resizeElements(1020,100); //todo
+                }
+            }
+        });
+    }
+
+    public static float dpToPx(Context context, float valueInDp) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, metrics);
+    }
+
+    public void resizeElements(int width, int height){ //todo height
         activity.getTextureView().getLayoutParams().height= (int) (width*0.5);
         ViewGroup.LayoutParams params= activity.findViewById(R.id.frame).getLayoutParams();
         params.width=width/2;
         params.height=width/4;
-
     }
 
     public void hideKeyboard(){

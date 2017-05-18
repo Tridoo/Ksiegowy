@@ -95,16 +95,19 @@ public class MainActivity extends AppCompatActivity {
     private String mImageFileName;
 
     private ScreenController screenController;
+    private Context context;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ksiegowy);
+        context=getApplicationContext();
 
         init();
         screenController=new ScreenController(this);
         screenController.setupButtons();
+        screenController.keyboardObserver(context, textureView);
 
         createImageFolder(); //??
 
@@ -192,7 +195,7 @@ public class MainActivity extends AppCompatActivity {
                                 Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
                                 if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
                                         afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
-                                    Toast.makeText(getApplicationContext(), "AF Locked!", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, "Trwa skanowanie", Toast.LENGTH_SHORT).show();
                                     startStillCaptureRequest();
                                 }
                                 break;
@@ -209,11 +212,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         contentResolver=this.getContentResolver();
-        dao=new Dao(getApplicationContext());
+        dao=new Dao(context);
 
         textureView = (TextureView) findViewById(R.id.textureView);
 
-        textRecognizer=new TextRecognizer.Builder(getApplicationContext()).build();
+        textRecognizer=new TextRecognizer.Builder(context).build();
         textRecognizer.setProcessor(new Detector.Processor<TextBlock>() { //potrzebne?
             @Override
             public void release() {
@@ -289,11 +292,11 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == Config.REQUEST_CAMERA_PERMISSION_RESULT) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getApplicationContext(),
+                Toast.makeText(context,
                         "Application will not run without camera services", Toast.LENGTH_SHORT).show();
             }
             if (grantResults[1] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getApplicationContext(),
+                Toast.makeText(context,
                         "Application will not have audio on record", Toast.LENGTH_SHORT).show();
             }
         }
@@ -316,19 +319,19 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onWindowFocusChanged(boolean hasFocus) {
+    public void onWindowFocusChanged(boolean hasFocus) {//todo potrzebne?
         super.onWindowFocusChanged(hasFocus);
         View decorView = getWindow().getDecorView();
-        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN;
-        /*View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+        int uiOptions = //View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                //| View.SYSTEM_UI_FLAG_FULLSCREEN;
+        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
                 | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                 | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION*/
+                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
 
-        //decorView.setSystemUiVisibility(uiOptions);
+//        decorView.setSystemUiVisibility(uiOptions);
     }
 
     public void setupCamera(int width, int height) {
@@ -520,8 +523,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void lockFocus() {
-        if(mBackgroundHandler==null)return;
+    public void capture() {
+        if(mBackgroundHandler==null){
+            Toast.makeText(context,"Camera is OFF",Toast.LENGTH_SHORT).show();
+            return;
+        }
         mCaptureState = Config.STATE_WAIT_LOCK;
         mCaptureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
         try {
@@ -590,6 +596,10 @@ public class MainActivity extends AppCompatActivity {
 
     public TextureView getTextureView() {
         return textureView;
+    }
+
+    public Context getContext() {
+        return context;
     }
 
     private Bitmap cropBitmap(Bitmap bitmap){
