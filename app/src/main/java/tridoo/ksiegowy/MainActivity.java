@@ -22,7 +22,6 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
@@ -44,18 +43,16 @@ import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static tridoo.ksiegowy.Config.REGEXP;
 import static tridoo.ksiegowy.Config.SCALE_X;
 import static tridoo.ksiegowy.Config.SCALE_Y;
 
@@ -107,9 +104,9 @@ public class MainActivity extends AppCompatActivity {
         init();
         screenController=new ScreenController(this);
         screenController.setupButtons();
-        screenController.keyboardObserver(context, textureView);
+        screenController.keyboardObserver(context);
 
-        createImageFolder(); //??
+        //createImageFolder(); //
 
         if (dao.isTaxesSaved()){
             readSavedParameters();
@@ -120,8 +117,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         showAds();
-        //todo hide keyboard
-        //todo ukrywanie elementow przy klawiaturze
     }
 
     private void init(){
@@ -318,22 +313,6 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    @Override
-    public void onWindowFocusChanged(boolean hasFocus) {//todo potrzebne?
-        super.onWindowFocusChanged(hasFocus);
-        View decorView = getWindow().getDecorView();
-        int uiOptions = //View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                //| View.SYSTEM_UI_FLAG_FULLSCREEN;
-        View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                | View.SYSTEM_UI_FLAG_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-
-//        decorView.setSystemUiVisibility(uiOptions);
-    }
-
     public void setupCamera(int width, int height) {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
@@ -428,11 +407,11 @@ public class MainActivity extends AppCompatActivity {
                         public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
                             super.onCaptureStarted(session, request, timestamp, frameNumber);
 
-                            try {
-                                createImageFileName();
+                   /*         try {
+                                //createImageFileName();
                             } catch (IOException e) {
                                 e.printStackTrace();
-                            }
+                            }*/
                         }
                     };
 
@@ -491,21 +470,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void createImageFolder() { //todo potrzebne?
+/*    private void createImageFolder() { //todo potrzebne?
         File imageFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
         mImageFolder = new File(imageFile, "camera2VideoImage");
         if (!mImageFolder.exists()) {
             mImageFolder.mkdirs();
         }
-    }
+    }*/
 
-    private File createImageFileName() throws IOException {
+/*    private File createImageFileName() throws IOException {
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String prepend = "IMAGE_";// + timestamp + "_";
         File imageFile = File.createTempFile(prepend, ".jpg", mImageFolder);
         mImageFileName = imageFile.getAbsolutePath();
         return imageFile;
-    }
+    }*/
 
     public void checkWriteStoragePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -538,7 +517,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private Bitmap getBmp( Image image){
+ /*   private Bitmap getBmp( Image image){
             Bitmap result;
             int targetImageViewWidth = image.getWidth();
             int targetImageViewHeight = image.getHeight();
@@ -568,7 +547,7 @@ public class MainActivity extends AppCompatActivity {
             result=Bitmap.createBitmap(photoReducedSizeBitmp, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
 
             return result;
-        }
+        }*/
 
     public void setIncomeTax(float incomeTax) {
         this.incomeTax = incomeTax;
@@ -682,8 +661,7 @@ public class MainActivity extends AppCompatActivity {
                 text += textBlocks.get(i).getValue();
             }
 
-            final String regExp = "[0-9]+([,.][0-9]{1,2})?";
-            final Pattern pattern = Pattern.compile(regExp);
+            final Pattern pattern = Pattern.compile(REGEXP);
             Matcher matcher = pattern.matcher(text);
             //System.out.println(text);
             //if (1==1){

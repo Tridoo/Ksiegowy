@@ -6,7 +6,6 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
-import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
@@ -26,6 +25,8 @@ public class ScreenController {
     private GridLayout layParameters;
     private LinearLayout laySummary;
     private EditText eGross;
+    private View curtain;
+    private Switch swPreview;
 
     public ScreenController(MainActivity activity){
         this.activity=activity;
@@ -35,6 +36,8 @@ public class ScreenController {
         layParameters=(GridLayout)activity.findViewById(R.id.lay_parameters);
         laySummary=(LinearLayout)activity.findViewById(R.id.lay_summary);
         eGross = (EditText) activity.findViewById(R.id.e_gross);
+        curtain= activity.findViewById(R.id.tv_curtain);
+        swPreview=((Switch) activity.findViewById(R.id.sw_preview));
 
         ((ImageButton) activity.findViewById(R.id.btn_scan)).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -44,10 +47,10 @@ public class ScreenController {
             }
         });
 
-        ((Switch) activity.findViewById(R.id.sw_preview)).setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+        swPreview.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                View curtain= activity.findViewById(R.id.tv_curtain);
+
                 if (!isChecked){
                     activity.closeCamera();
                     activity.stopBackgroundThread();
@@ -61,7 +64,6 @@ public class ScreenController {
 
             }
         });
-
 
         ((activity.findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,19 +103,22 @@ public class ScreenController {
         eGross.addTextChangedListener(watcher);
     }
 
-    public void keyboardObserver(final Context context, final TextureView textureView){
+    public void keyboardObserver(final Context context){
         final View activityRootView = activity.findViewById(R.id.lay_root);
         activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
                 int heightDiff = activityRootView.getRootView().getHeight() - activityRootView.getHeight();
+                int width=activity.getTextureView().getWidth();
                 if (heightDiff > dpToPx(context, 200)) {
                     activity.findViewById(R.id.lay_buttons).setVisibility(View.GONE);
-                    resizeElements(10,1); //nie chować !!
+                    resizeElements(width,10); //nie chować textureview !!
+                    curtain.setVisibility(View.VISIBLE);
                 }
                 else {
                     activity.findViewById(R.id.lay_buttons).setVisibility(View.VISIBLE);
-                    resizeElements(1020,100); //todo
+                    resizeElements(width);
+                    if (swPreview.isChecked()) curtain.setVisibility(View.INVISIBLE);
                 }
             }
         });
@@ -124,11 +129,13 @@ public class ScreenController {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, metrics);
     }
 
-    public void resizeElements(int width, int height){ //todo height
-        activity.getTextureView().getLayoutParams().height= (int) (width*0.5);
+    public void resizeElements(int ... param){
+        int width = param.length > 0 ? param[0] : 0;
+        int height = param.length > 1 ? param[1] : (int)(width*0.5f);
+        activity.getTextureView().getLayoutParams().height= height;
         ViewGroup.LayoutParams params= activity.findViewById(R.id.frame).getLayoutParams();
         params.width=width/2;
-        params.height=width/4;
+        params.height=height/2;
     }
 
     public void hideKeyboard(){
