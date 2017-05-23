@@ -3,7 +3,6 @@ package tridoo.ksiegowy;
 
 public class Config {
     static final int REQUEST_CAMERA_PERMISSION_RESULT = 0;
-    static final int REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT = 1;
     static final int STATE_PREVIEW = 0;
     static final int STATE_WAIT_LOCK = 1;
     final static int SCALE_X =2;

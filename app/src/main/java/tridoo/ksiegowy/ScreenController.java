@@ -42,7 +42,6 @@ public class ScreenController {
         ((ImageButton) activity.findViewById(R.id.btn_scan)).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.checkWriteStoragePermission();
                 activity.capture();
             }
         });
@@ -50,7 +49,6 @@ public class ScreenController {
         swPreview.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-
                 if (!isChecked){
                     activity.closeCamera();
                     activity.stopBackgroundThread();
@@ -58,7 +56,8 @@ public class ScreenController {
                 }else{
                     activity.startBackgroundThread();
                     activity.setupCamera(activity.getTextureView().getWidth(), activity.getTextureView().getHeight());
-                    activity.connectCamera();
+                    if(activity.isCameraPermission() )activity.connectCamera();
+                    else activity.checkPermisionns();
                     curtain.setVisibility(View.INVISIBLE);
                 }
 

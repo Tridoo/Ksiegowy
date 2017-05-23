@@ -1,7 +1,6 @@
 package tridoo.ksiegowy;
 
 
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -33,7 +32,6 @@ import android.view.TextureView;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -42,33 +40,22 @@ import com.google.android.gms.vision.Frame;
 import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
-import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static tridoo.ksiegowy.Config.REGEXP;
-import static tridoo.ksiegowy.Config.SCALE_X;
-import static tridoo.ksiegowy.Config.SCALE_Y;
 
 public class MainActivity extends AppCompatActivity {
 
     private int mCaptureState;
     private TextureView textureView;
-    private ToggleButton btnPreview;
     private TextRecognizer textRecognizer;
-    //private EditText eGross;
-    private ContentResolver contentResolver;
     private float incomeTax, vatRelief, articleVat;
     private Dao dao;
 
-
-     TextureView.SurfaceTextureListener mSurfaceTextureListener ;
+    private TextureView.SurfaceTextureListener mSurfaceTextureListener ;
     private CameraDevice mCameraDevice;
     private CameraDevice.StateCallback mCameraDeviceStateCallback ;
     private HandlerThread mBackgroundHandlerThread;
@@ -84,15 +71,9 @@ public class MainActivity extends AppCompatActivity {
 
     private CaptureRequest.Builder mCaptureRequestBuilder;
 
-    //private Button btnScan;
-    //private GridLayout layParameters;
-    //private LinearLayout laySummary;
-
-    private File mImageFolder;
-    private String mImageFileName;
-
     private ScreenController screenController;
     private Context context;
+    private boolean isCameraPermission;
 
 
     @Override
@@ -106,13 +87,12 @@ public class MainActivity extends AppCompatActivity {
         screenController.setupButtons();
         screenController.keyboardObserver(context);
 
-        //createImageFolder(); //
-
         if (dao.isTaxesSaved()){
             readSavedParameters();
             screenController.setupParameters();
             screenController.getLayParameters().setVisibility(View.GONE);
         }else{
+            //todo ustawic podsumowanie, po zwinieciu sa 0%
             screenController.getLaySummary().setVisibility(View.GONE);
         }
 
@@ -126,14 +106,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
                 Matrix matrix = new Matrix();
-
-                matrix.setScale(SCALE_X, SCALE_Y,width/2,height/2); //todo jaki zoom?
+                matrix.setScale(Config.SCALE_X, Config.SCALE_Y,width/2,height/2);
                 textureView.setTransform(matrix);
 
                 setupCamera(width, height);
-                connectCamera();
+                if (isCameraPermission) connectCamera();
                 screenController.resizeElements(width, height);
-
             }
 
             @Override
@@ -190,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                                 Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
                                 if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
                                         afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
-                                    Toast.makeText(context, "Trwa skanowanie", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(context, getString(R.string.scanning), Toast.LENGTH_SHORT).show();
                                     startStillCaptureRequest();
                                 }
                                 break;
@@ -200,17 +178,13 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
                         super.onCaptureCompleted(session, request, result);
-
                         process(result);
                     }
                 };
 
-
-        contentResolver=this.getContentResolver();
         dao=new Dao(context);
 
         textureView = (TextureView) findViewById(R.id.textureView);
-
         textRecognizer=new TextRecognizer.Builder(context).build();
         textRecognizer.setProcessor(new Detector.Processor<TextBlock>() { //potrzebne?
             @Override
@@ -268,18 +242,39 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        checkPermisionns();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         startBackgroundThread();
 
         if (textureView.isAvailable()) {
             setupCamera(textureView.getWidth(), textureView.getHeight());
-            connectCamera();
+            if (isCameraPermission) connectCamera(); //todo sprawdzic czy kamera nie jest juz podlaczona w init, czy potrzebne
+            //nie sprawdzac uprawnien, ich zmiana zatrzymuje całkonicie aplikacje
         } else {
             textureView.setSurfaceTextureListener(mSurfaceTextureListener);
         }
-
         screenController.hideKeyboard();
+    }
+
+    public void checkPermisionns(){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                isCameraPermission=true;
+            } else {
+                if (shouldShowRequestPermissionRationale(android.Manifest.permission.CAMERA)) {
+                    Toast.makeText(this, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
+                }
+                requestPermissions(new String[]{android.Manifest.permission.CAMERA}, Config.REQUEST_CAMERA_PERMISSION_RESULT);
+            }
+        } else {
+            isCameraPermission=true;
+        }
     }
 
     @Override
@@ -287,22 +282,8 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == Config.REQUEST_CAMERA_PERMISSION_RESULT) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(context,
-                        "Application will not run without camera services", Toast.LENGTH_SHORT).show();
-            }
-            if (grantResults[1] != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(context,
-                        "Application will not have audio on record", Toast.LENGTH_SHORT).show();
-            }
-        }
-        if (requestCode == Config.REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT) {
-            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this,
-                        "Permission successfully granted!", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this,
-                        "App needs to save video to run", Toast.LENGTH_SHORT).show();
-            }
+                Toast.makeText(context, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
+            } else isCameraPermission=true;
         }
     }
 
@@ -324,8 +305,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 StreamConfigurationMap map = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
 
-                mPreviewSize = prevSize(map.getOutputSizes(SurfaceTexture.class), width, height);
-                mImageSize = chooseOptimalSize(map.getOutputSizes(ImageFormat.JPEG), width, height);
+                mPreviewSize = prevSize(map.getOutputSizes(SurfaceTexture.class), width);
+                mImageSize = chooseImageSize(map.getOutputSizes(ImageFormat.JPEG));
                 mImageReader = ImageReader.newInstance(mImageSize.getWidth(), mImageSize.getHeight(), ImageFormat.JPEG, 10);
                 mImageReader.setOnImageAvailableListener(mOnImageAvailableListener, mBackgroundHandler);
                 mCameraId = cameraId;
@@ -338,24 +319,9 @@ public class MainActivity extends AppCompatActivity {
 
     public void connectCamera() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) ==
-                        PackageManager.PERMISSION_GRANTED) {
-                    cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mBackgroundHandler);
-                } else {
-                    if (shouldShowRequestPermissionRationale(android.Manifest.permission.CAMERA)) {
-                        Toast.makeText(this,
-                                "Video app required access to camera", Toast.LENGTH_SHORT).show();
-                    }
-                    requestPermissions(new String[]{android.Manifest.permission.CAMERA, android.Manifest.permission.RECORD_AUDIO
-                    }, Config.REQUEST_CAMERA_PERMISSION_RESULT);
-                }
-
-            } else {
-                cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mBackgroundHandler);
-            }
-        } catch (CameraAccessException e) {
+            try {
+            cameraManager.openCamera(mCameraId, mCameraDeviceStateCallback, mBackgroundHandler);
+        } catch (CameraAccessException | SecurityException e) {
             e.printStackTrace();
         }
     }
@@ -395,7 +361,6 @@ public class MainActivity extends AppCompatActivity {
 
     private void startStillCaptureRequest() {
         try {
-
             mCaptureRequestBuilder = mCameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
 
             mCaptureRequestBuilder.addTarget(mImageReader.getSurface());
@@ -406,12 +371,6 @@ public class MainActivity extends AppCompatActivity {
                         @Override
                         public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
                             super.onCaptureStarted(session, request, timestamp, frameNumber);
-
-                   /*         try {
-                                //createImageFileName();
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }*/
                         }
                     };
 
@@ -447,64 +406,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static Size prevSize(Size[] choices, int width, int height){
-        for (int i=1;i<choices.length;i++){ //0 na pewno za duze, pasuje tylko na fullscreen
+    private static Size prevSize(Size[] choices, int width){
+        for (int i=1;i<choices.length;i++){
             if(choices[i].getWidth()<width)return choices[i-1];
         }
         return  choices[0];
     }
 
-    private static Size chooseOptimalSize(Size[] choices, int width, int height) {
-        List<Size> bigEnough = new ArrayList<>();
-        for (Size option : choices) {
-            if(option.getHeight()>height) return choices[2]; //todo 0,1 nie dziala zbadać
-
-            if (option.getHeight() >= option.getWidth() * height / width &&   option.getWidth() >= width && option.getHeight() >= height) {
-                bigEnough.add(option);
-            }
-        }
-        if (bigEnough.size() > 0) {
-            return Collections.min(bigEnough, new CompareSizeByArea());
-        } else {
-            return choices[0];
-        }
-    }
-
-/*    private void createImageFolder() { //todo potrzebne?
-        File imageFile = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        mImageFolder = new File(imageFile, "camera2VideoImage");
-        if (!mImageFolder.exists()) {
-            mImageFolder.mkdirs();
-        }
-    }*/
-
-/*    private File createImageFileName() throws IOException {
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String prepend = "IMAGE_";// + timestamp + "_";
-        File imageFile = File.createTempFile(prepend, ".jpg", mImageFolder);
-        mImageFileName = imageFile.getAbsolutePath();
-        return imageFile;
-    }*/
-
-    public void checkWriteStoragePermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-
-            } else {
-                if (shouldShowRequestPermissionRationale(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    Toast.makeText(this, "app needs to be able to save videos", Toast.LENGTH_SHORT).show();
-                }
-                requestPermissions(new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, Config.REQUEST_WRITE_EXTERNAL_STORAGE_PERMISSION_RESULT);
-            }
-        } else {
-
-        }
+    private static Size chooseImageSize(Size[] choices) {
+        return Collections.max(Arrays.asList(choices), new CompareSizeByArea());
     }
 
     public void capture() {
         if(mBackgroundHandler==null){
-            Toast.makeText(context,"Camera is OFF",Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.camera_off,Toast.LENGTH_SHORT).show();
             return;
         }
         mCaptureState = Config.STATE_WAIT_LOCK;
@@ -516,38 +431,6 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
-
- /*   private Bitmap getBmp( Image image){
-            Bitmap result;
-            int targetImageViewWidth = image.getWidth();
-            int targetImageViewHeight = image.getHeight();
-
-            BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-            bmOptions.inJustDecodeBounds = true;
-            BitmapFactory.decodeFile(mImageFileName, bmOptions);
-            int cameraImageWidth = bmOptions.outWidth;
-            int cameraImageHeight = bmOptions.outHeight;
-
-            int scaleFactor = Math.min(cameraImageWidth/targetImageViewWidth, cameraImageHeight/targetImageViewHeight);
-            bmOptions.inSampleSize = scaleFactor;
-            bmOptions.inJustDecodeBounds = false;
-
-            Bitmap photoReducedSizeBitmp = BitmapFactory.decodeFile(mImageFileName, bmOptions);
-
-            int width=photoReducedSizeBitmp.getWidth();
-            int height=photoReducedSizeBitmp.getHeight();
-
-            int scaledWidth = width/ SCALE_X;
-            int scaledHeight = height / SCALE_Y;
-
-            int dx = (int)((width-scaledWidth)*0.5);
-            int dy =(int)((height-scaledHeight)*0.5);
-            dx=dx+scaledWidth/4;//wycinek podgladu
-
-            result=Bitmap.createBitmap(photoReducedSizeBitmp, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
-
-            return result;
-        }*/
 
     public void setIncomeTax(float incomeTax) {
         this.incomeTax = incomeTax;
@@ -573,12 +456,12 @@ public class MainActivity extends AppCompatActivity {
         return articleVat;
     }
 
-    public TextureView getTextureView() {
-        return textureView;
+    public boolean isCameraPermission() {
+        return isCameraPermission;
     }
 
-    public Context getContext() {
-        return context;
+    public TextureView getTextureView() {
+        return textureView;
     }
 
     private Bitmap cropBitmap(Bitmap bitmap){
@@ -586,8 +469,8 @@ public class MainActivity extends AppCompatActivity {
         int width=bitmap.getWidth();
         int height=bitmap.getHeight();
 
-        int scaledWidth = width/ SCALE_X;
-        int scaledHeight = height / SCALE_Y;
+        int scaledWidth = width/ Config.SCALE_X;
+        int scaledHeight = height / Config.SCALE_Y;
 
         int dx = (int)((width-scaledWidth)*0.5);
         int dy =(int)((height-scaledHeight)*0.5);
@@ -619,41 +502,10 @@ public class MainActivity extends AppCompatActivity {
             ByteBuffer byteBuffer = mImage.getPlanes()[0].getBuffer();
             byte[] bytes = new byte[byteBuffer.remaining()];
             byteBuffer.get(bytes);
-            //Bitmap photoReducedSizeBitmp=null;
+
             Bitmap tmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length);
 
-/*            FileOutputStream fileOutputStream = null;
-            try {
-                fileOutputStream = new FileOutputStream(mImageFileName);
-
-                //cropBitmap(tmp);
-                //tmp.compress(Bitmap.CompressFormat.JPEG, 85, fileOutputStream);
-                fileOutputStream.write(bytes);
-                //photoReducedSizeBitmp=getBmp(mImage);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            } finally {
-                mImage.close();
-                File file = new File(mImageFileName);
-
-                Intent mediaStoreUpdateIntent = new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE);
-
-                mediaStoreUpdateIntent.setData(Uri.fromFile(file));
-                sendBroadcast(mediaStoreUpdateIntent);
-                boolean deleted = file.delete();
-
-                if (fileOutputStream != null) {
-                    try {
-                        fileOutputStream.close();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }*/
-
             Frame frame = new Frame.Builder().setBitmap(cropBitmap(tmp)).build();
-            //Frame frame = new Frame.Builder().setBitmap(photoReducedSizeBitmp).build();
             SparseArray<TextBlock> textBlocks = textRecognizer.detect(frame);
             String text="";
             for(int i = 0; i < textBlocks.size(); i++) {
@@ -661,13 +513,10 @@ public class MainActivity extends AppCompatActivity {
                 text += textBlocks.get(i).getValue();
             }
 
-            final Pattern pattern = Pattern.compile(REGEXP);
+            final Pattern pattern = Pattern.compile(Config.REGEXP);
             Matcher matcher = pattern.matcher(text);
-            //System.out.println(text);
-            //if (1==1){
             if(matcher.find()){
                 final String finalText = matcher.group(0);
-                //final String finalText = text;
                 screenController.geteGross().post(new Runnable() {
                     @Override
                     public void run() {
@@ -678,6 +527,5 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
 }
