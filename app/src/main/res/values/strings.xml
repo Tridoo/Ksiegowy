@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">Ksiegowy</string>
     <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+
+    <string name="scanning">Trwa skanowanie</string>
+    <string name="no_permission">Aplikacja potrzebuje dostępu do kamery</string>
+    <string name="camera_off">Camera is OFF</string>
 </resources>
