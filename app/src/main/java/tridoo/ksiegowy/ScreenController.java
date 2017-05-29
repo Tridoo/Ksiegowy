@@ -85,7 +85,7 @@ public class ScreenController {
         ((RadioGroup)activity.findViewById(R.id.gr_vat)).setOnCheckedChangeListener(new CheckedChangeListener());
         ((RadioGroup)activity.findViewById(R.id.gr_vat2)).setOnCheckedChangeListener(new CheckedChangeListener());
 //wyrównanie RB grup
-        //http://stackoverflow.com/questions/2381560/how-to-group-a-3x3-grid-of-radio-buttons
+         //http://stackoverflow.com/questions/2381560/how-to-group-a-3x3-grid-of-radio-buttons
 
 
         TextWatcher watcher= new TextWatcher() {
