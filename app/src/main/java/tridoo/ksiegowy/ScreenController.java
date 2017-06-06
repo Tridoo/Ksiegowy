@@ -109,7 +109,7 @@ public class ScreenController {
             public void onGlobalLayout() {
                 int heightDiff = activityRootView.getRootView().getHeight() - activityRootView.getHeight();
                 int width=activity.getTextureView().getWidth();
-                if (heightDiff > dpToPx(context, 200)) {
+                if (heightDiff > dpToPx(context, 200)) { //todo poprawic
                     activity.findViewById(R.id.lay_buttons).setVisibility(View.GONE);
                     resizeElements(width,10); //nie chować textureview !!
                     curtain.setVisibility(View.VISIBLE);

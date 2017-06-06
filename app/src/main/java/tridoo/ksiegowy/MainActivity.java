@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                                 Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
                                 if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
                                     Toast.makeText(context, getString(R.string.scanning), Toast.LENGTH_SHORT).show();
-                                    startStillCaptureRequest();
+                                    startCaptureRequest();
                                 }
                                 break;
                         }
@@ -331,10 +331,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startStillCaptureRequest() {
+    private void startCaptureRequest() {
         try {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
-
             captureRequestBuilder.addTarget(imageReader.getSurface());
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, 90);
 
@@ -394,7 +393,7 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(context, R.string.camera_off,Toast.LENGTH_SHORT).show();
             return;
         }
-        captureState = Config.STATE_WAIT_LOCK;
+        captureState = Config.STATE_WAIT_LOCK; //todo sprawdzic, bezpiecznie zrobic zdj
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
         try {
             previewCaptureSession.capture(captureRequestBuilder.build(), previewCaptureCallback, backgroundHandler);
@@ -436,22 +435,6 @@ public class MainActivity extends AppCompatActivity {
         return textureView;
     }
 
-    private Bitmap cropBitmap(Bitmap bitmap){
-        Bitmap result;
-        int width=bitmap.getWidth();
-        int height=bitmap.getHeight();
-
-        int scaledWidth = width/ Config.SCALE_X;
-        int scaledHeight = height / Config.SCALE_Y;
-
-        int dx = (int)((width-scaledWidth)*0.5);
-        int dy =(int)((height-scaledHeight)*0.5);
-        dx=dx+scaledWidth/4;//wycinek podgladu
-
-        result=Bitmap.createBitmap(bitmap, dx,dy, scaledWidth/2, scaledHeight/2); // rozpoznanie gornej polowki
-
-        return result;
-    }
 
     private static class CompareSizeByArea implements Comparator<Size> {
         @Override
@@ -475,9 +458,9 @@ public class MainActivity extends AppCompatActivity {
             byte[] bytes = new byte[byteBuffer.remaining()];
             byteBuffer.get(bytes);
 
-            Bitmap tmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length);
+            Bitmap bmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length);
 
-            Frame frame = new Frame.Builder().setBitmap(cropBitmap(tmp)).build();
+            Frame frame = new Frame.Builder().setBitmap(cropBitmap(bmp)).build();
             SparseArray<TextBlock> textBlocks = textRecognizer.detect(frame);
             String text="";
             for(int i = 0; i < textBlocks.size(); i++) {
@@ -496,6 +479,42 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             }
+        }
+
+        private Bitmap cropBitmap(Bitmap bitmap) {
+            Bitmap result;
+            int width = bitmap.getWidth();
+            int height = bitmap.getHeight();
+            boolean isRoteted = false;
+            int scaledWidth, scaledHeight, dx, dy;
+
+            if (height < width) isRoteted = true;
+
+            if (isRoteted) {
+                scaledWidth = width / Config.SCALE_Y;
+                scaledHeight = height / Config.SCALE_X;
+            } else {
+                scaledWidth = width / Config.SCALE_X;
+                scaledHeight = height / Config.SCALE_Y;
+            }
+
+            dx = (int) ((width - scaledWidth) * 0.5);
+            dy = (int) ((height - scaledHeight) * 0.5);
+            if (isRoteted) {
+                dy = dy + scaledHeight / 4;
+            } else {
+                dx = dx + scaledWidth / 4;
+            }
+
+            result = Bitmap.createBitmap(bitmap, dx, dy, scaledWidth / 2, scaledHeight / 2);
+            if (isRoteted) result = fixOrientation(result); //nie obracac przed wycieciem, OutOfMemory czeste
+            return result;
+        }
+
+        private Bitmap fixOrientation(Bitmap bmp) {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(90);
+            return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
         }
     }
 }

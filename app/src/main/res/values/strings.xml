@@ -4,5 +4,5 @@
 
     <string name="scanning">Trwa skanowanie</string>
     <string name="no_permission">Aplikacja potrzebuje dostępu do kamery</string>
-    <string name="camera_off">Camera is OFF</string>
+    <string name="camera_off">Kamera jest wyłączona</string>
 </resources>
