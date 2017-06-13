@@ -105,13 +105,13 @@ public class MainActivity extends AppCompatActivity {
         surfaceTextureListener = new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+                screenController.resizeElements(width, height);
                 Matrix matrix = new Matrix();
                 matrix.setScale(Config.SCALE_X, Config.SCALE_Y,width/2,height/2);
                 textureView.setTransform(matrix);
 
                 setupCamera(width, height);
                 if (isCameraPermission) connectCamera();
-                screenController.resizeElements(width, height);
             }
 
             @Override
