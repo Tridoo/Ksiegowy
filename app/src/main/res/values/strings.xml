@@ -1,8 +1,10 @@
 <resources>
     <string name="app_name">Ksiegowy</string>
-    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_test_id">ca-app-pub-3940256099942544/6300978111</string>
+    <string name="banner_id">ca-app-pub-2530185123591218/8758102487</string>
 
     <string name="scanning">Trwa skanowanie</string>
     <string name="no_permission">Aplikacja potrzebuje dostępu do kamery</string>
     <string name="camera_off">Kamera jest wyłączona</string>
+    <string name="camera_error">Błąd kamery</string>
 </resources>

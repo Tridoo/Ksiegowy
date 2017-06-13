@@ -10,6 +10,5 @@ public class Config {
 
     static final String VAT="vat";
     static final String INCOME_TAX="incomeTax";
-
     static final String REGEXP="[0-9]+([,.][0-9]{1,2})?";
 }

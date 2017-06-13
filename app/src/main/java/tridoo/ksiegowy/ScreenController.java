@@ -49,18 +49,17 @@ public class ScreenController {
         swPreview.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                if (!isChecked){
+                if (!isChecked) {
                     activity.closeCamera();
                     activity.stopBackgroundThread();
                     curtain.setVisibility(View.VISIBLE);
-                }else{
+                } else {
                     activity.startBackgroundThread();
                     activity.setupCamera(activity.getTextureView().getWidth(), activity.getTextureView().getHeight());
-                    if(activity.isCameraPermission() )activity.connectCamera();
-                    else activity.checkPermisionns();
-                    curtain.setVisibility(View.INVISIBLE);
+                    if (activity.isCameraPermission()) {
+                        if (activity.connectCamera()) curtain.setVisibility(View.INVISIBLE);
+                    } else activity.checkPermisionns();
                 }
-
             }
         });
 
@@ -109,7 +108,7 @@ public class ScreenController {
             public void onGlobalLayout() {
                 int heightDiff = activityRootView.getRootView().getHeight() - activityRootView.getHeight();
                 int width=activity.getTextureView().getWidth();
-                if (heightDiff > dpToPx(context, 200)) { //todo poprawic
+                if (heightDiff > dpToPx(context, 200)) { //todo inaczej?
                     activity.findViewById(R.id.lay_buttons).setVisibility(View.GONE);
                     resizeElements(width,10); //nie chować textureview !!
                     curtain.setVisibility(View.VISIBLE);
@@ -201,6 +200,10 @@ public class ScreenController {
 
     public EditText geteGross() {
         return eGross;
+    }
+
+    public void setSwitchState(boolean state){
+        swPreview.setChecked(state);
     }
 
     private class CheckedChangeListener implements RadioGroup.OnCheckedChangeListener {

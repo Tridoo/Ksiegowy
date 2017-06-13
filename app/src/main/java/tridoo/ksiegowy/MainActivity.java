@@ -241,6 +241,7 @@ public class MainActivity extends AppCompatActivity {
                 isCameraPermission=true;
             } else {
                 if (shouldShowRequestPermissionRationale(android.Manifest.permission.CAMERA)) {
+                    screenController.setSwitchState(false);
                     Toast.makeText(this, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
                 }
                 requestPermissions(new String[]{android.Manifest.permission.CAMERA}, Config.REQUEST_CAMERA_PERMISSION_RESULT);
@@ -255,8 +256,12 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == Config.REQUEST_CAMERA_PERMISSION_RESULT) {
             if (grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+                screenController.setSwitchState(false);
                 Toast.makeText(context, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
-            } else isCameraPermission=true;
+            } else {
+                screenController.setSwitchState(true);
+                isCameraPermission=true;
+            }
         }
     }
 
@@ -289,13 +294,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void connectCamera() {
+    public boolean connectCamera() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-            try {
+        if (cameraId==null) {
+            screenController.setSwitchState(false);
+            Toast.makeText(context, R.string.camera_error,Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        try {
             cameraManager.openCamera(cameraId, cameraDeviceStateCallback, backgroundHandler);
         } catch (CameraAccessException | SecurityException e) {
             e.printStackTrace();
         }
+        return true;
     }
 
     private void startPreview() {
@@ -389,11 +400,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void capture() {
+        if (!isCameraPermission) {
+            checkPermisionns();
+            return;
+        }
         if(backgroundHandler ==null){
             Toast.makeText(context, R.string.camera_off,Toast.LENGTH_SHORT).show();
             return;
         }
-        captureState = Config.STATE_WAIT_LOCK; //todo sprawdzic, bezpiecznie zrobic zdj
+        captureState = Config.STATE_WAIT_LOCK;
         captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CaptureRequest.CONTROL_AF_TRIGGER_START);
         try {
             previewCaptureSession.capture(captureRequestBuilder.build(), previewCaptureCallback, backgroundHandler);
@@ -499,7 +514,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             dx = (int) ((width - scaledWidth) * 0.5);
-            dy = (int) ((height - scaledHeight) * 0.5);
+            dy = (int) ((height - scaledHeight) * 0.5);//to do sprawdzic bo troche za wysoko wycina
             if (isRoteted) {
                 dy = dy + scaledHeight / 4;
             } else {
