@@ -304,11 +304,11 @@
             android:id="@+id/e_gross"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_columnWeight="5"
-            android:layout_gravity="fill_horizontal"
+            android:layout_gravity="left"
             android:layout_rowWeight="1"
             android:gravity="left|center_vertical"
-            android:inputType="numberDecimal" />
+            android:inputType="numberDecimal"
+            android:minEms="3" />
 
         <TextView
             android:id="@+id/textView4"

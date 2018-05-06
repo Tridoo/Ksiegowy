@@ -3,8 +3,6 @@ package tridoo.ksiegowy;
 
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
@@ -17,7 +15,6 @@ import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.os.Bundle;
@@ -26,7 +23,6 @@ import android.os.HandlerThread;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Size;
-import android.util.SparseArray;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
@@ -35,16 +31,10 @@ import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
-import com.google.android.gms.vision.Frame;
-import com.google.android.gms.vision.text.TextBlock;
 import com.google.android.gms.vision.text.TextRecognizer;
 
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -96,12 +86,12 @@ public class MainActivity extends AppCompatActivity {
         }
         screenController.setupParameters();
 
-        showAds();
+        //showAds();
     }
 
     private void init(){
         captureState = Config.STATE_PREVIEW;
-
+//todo refactor
         surfaceTextureListener = new TextureView.SurfaceTextureListener() {
             @Override
             public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -147,11 +137,11 @@ public class MainActivity extends AppCompatActivity {
                 cameraDevice = null;
             }
         };
-
+//todo refactor
         onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
             @Override
             public void onImageAvailable(ImageReader reader) {
-                backgroundHandler.post(new ImageProcessor(reader.acquireLatestImage()));
+                backgroundHandler.post(new ImageProcessor(reader.acquireLatestImage(),textRecognizer, screenController));
             }
         };
 
@@ -318,7 +308,7 @@ public class MainActivity extends AppCompatActivity {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(previewSurface);
             captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-
+//todo refactor
             cameraDevice.createCaptureSession(Arrays.asList(previewSurface, imageReader.getSurface()),
                     new CameraCaptureSession.StateCallback() {
                         @Override
@@ -347,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureRequestBuilder.addTarget(imageReader.getSurface());
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, 90);
-
+//todo refactor
             CameraCaptureSession.CaptureCallback stillCaptureCallback = new
                     CameraCaptureSession.CaptureCallback() {
                         @Override
@@ -450,86 +440,4 @@ public class MainActivity extends AppCompatActivity {
         return textureView;
     }
 
-
-    private static class CompareSizeByArea implements Comparator<Size> {
-        @Override
-        public int compare(Size lhs, Size rhs) {
-            return Long.signum((long) (lhs.getWidth() * lhs.getHeight()) -
-                    (long) (rhs.getWidth() * rhs.getHeight()));
-        }
-    }
-
-    private class ImageProcessor implements Runnable {
-
-        private final Image image;
-
-        public ImageProcessor(Image image) {
-            this.image = image;
-        }
-
-        @Override
-        public void run() {
-            ByteBuffer byteBuffer = image.getPlanes()[0].getBuffer();
-            byte[] bytes = new byte[byteBuffer.remaining()];
-            byteBuffer.get(bytes);
-
-            Bitmap bmp=BitmapFactory.decodeByteArray(bytes,0,bytes.length);
-
-            Frame frame = new Frame.Builder().setBitmap(cropBitmap(bmp)).build();
-            SparseArray<TextBlock> textBlocks = textRecognizer.detect(frame);
-            String text="";
-            for(int i = 0; i < textBlocks.size(); i++) {
-                if (textBlocks.get(i) == null) continue;
-                text += textBlocks.get(i).getValue();
-            }
-
-            final Pattern pattern = Pattern.compile(Config.REGEXP);
-            Matcher matcher = pattern.matcher(text);
-            if(matcher.find()){
-                final String finalText = matcher.group(0);
-                screenController.geteGross().post(new Runnable() {
-                    @Override
-                    public void run() {
-                        screenController.geteGross().setText(finalText);
-                    }
-                });
-            }
-        }
-
-        private Bitmap cropBitmap(Bitmap bitmap) {
-            Bitmap result;
-            int width = bitmap.getWidth();
-            int height = bitmap.getHeight();
-            boolean isRoteted = false;
-            int scaledWidth, scaledHeight, dx, dy;
-
-            if (height < width) isRoteted = true;
-
-            if (isRoteted) {
-                scaledWidth = width / Config.SCALE_Y;
-                scaledHeight = height / Config.SCALE_X;
-            } else {
-                scaledWidth = width / Config.SCALE_X;
-                scaledHeight = height / Config.SCALE_Y;
-            }
-
-            dx = (int) ((width - scaledWidth) * 0.5);
-            dy = (int) ((height - scaledHeight) * 0.5);//to do sprawdzic bo troche za wysoko wycina
-            if (isRoteted) {
-                dy = dy + scaledHeight / 4;
-            } else {
-                dx = dx + scaledWidth / 4;
-            }
-
-            result = Bitmap.createBitmap(bitmap, dx, dy, scaledWidth / 2, scaledHeight / 2);
-            if (isRoteted) result = fixOrientation(result); //nie obracac przed wycieciem, OutOfMemory czeste
-            return result;
-        }
-
-        private Bitmap fixOrientation(Bitmap bmp) {
-            Matrix matrix = new Matrix();
-            matrix.postRotate(90);
-            return Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), matrix, true);
-        }
-    }
 }
