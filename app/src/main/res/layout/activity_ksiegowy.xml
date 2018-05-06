@@ -19,6 +19,8 @@
         android:layout_height="match_parent"
         android:layout_above="@+id/textureView"
         android:layout_below="@+id/baner"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
         android:gravity="center"
         android:orientation="vertical">
 
@@ -276,90 +278,100 @@
         android:layout_marginEnd="10dp"
         android:layout_marginStart="10dp" />
 
-    <LinearLayout
+    <GridLayout
+        android:id="@+id/lay_amounts"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@+id/lay_buttons"
         android:layout_below="@+id/textureView"
-        android:orientation="vertical">
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:columnCount="2"
+        android:rowCount="4">
 
-        <LinearLayout
-            android:id="@+id/lay_gross"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+        <TextView
+            android:id="@+id/textView6"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill_vertical"
+            android:layout_marginStart="5dp"
+            android:layout_rowWeight="1"
+            android:gravity="center_vertical"
+            android:text="Kwota brutto:" />
 
+        <EditText
+            android:id="@+id/e_gross"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="5"
+            android:layout_gravity="fill_horizontal"
+            android:layout_rowWeight="1"
+            android:gravity="left|center_vertical"
+            android:inputType="numberDecimal" />
 
-            <TextView
-                android:id="@+id/textView6"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:text="Kwota brutto:" />
+        <TextView
+            android:id="@+id/textView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill_vertical"
+            android:layout_marginStart="5dp"
+            android:layout_rowWeight="1"
+            android:gravity="center_vertical"
+            android:text="Odliczenie VAT" />
 
+        <TextView
+            android:id="@+id/tv_relief_vat"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="5"
+            android:layout_gravity="fill_vertical"
+            android:layout_rowWeight="1"
+            android:gravity="left|center_vertical" />
 
-            <EditText
-                android:id="@+id/e_gross"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
-                android:ems="8"
-                android:inputType="numberDecimal" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/textView7"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill_vertical"
+            android:layout_marginStart="5dp"
+            android:layout_rowWeight="1"
+            android:gravity="center_vertical"
+            android:text="Odliczenie pod doch" />
 
-        <LinearLayout
-            android:id="@+id/lay_relief"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
+        <TextView
+            android:id="@+id/tv_relief_inc"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="5"
+            android:layout_gravity="fill_vertical"
+            android:layout_rowWeight="1"
+            android:gravity="left|center_vertical" />
 
+        <TextView
+            android:id="@+id/textView3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="fill_vertical"
+            android:layout_marginStart="5dp"
+            android:layout_rowWeight="1"
+            android:gravity="center_vertical"
+            android:text="Koszt końcowy:"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/textView4"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:text="Suma odliczeń:" />
-
-
-            <TextView
-                android:id="@+id/tv_relief"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/lay_cost"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginStart="10dp"
-            android:layout_weight="1"
-            android:orientation="horizontal">
-
-
-            <TextView
-                android:id="@+id/textView3"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:text="Koszt końcowy:" />
-
-
-            <TextView
-                android:id="@+id/tv_cost"
-                android:layout_width="100dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp" />
-        </LinearLayout>
-
-    </LinearLayout>
+        <TextView
+            android:id="@+id/tv_cost"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="5"
+            android:layout_gravity="fill_vertical"
+            android:layout_rowWeight="1"
+            android:gravity="left|center_vertical"
+            android:textStyle="bold" />
+    </GridLayout>
 
     <LinearLayout
         android:id="@+id/lay_buttons"

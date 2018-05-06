@@ -185,17 +185,17 @@ public class MainActivity extends AppCompatActivity {
         textRecognizer=new TextRecognizer.Builder(context).build();
     }
 
-    public void calculate(){
+    public void calculate() {
         float reliefAmount;
         float grossAmount = screenController.getGross();
-        float vatAmount=grossAmount-grossAmount/(1+ screenController.getArticleVat());
-        float vatReliefAmount=vatAmount* screenController.getVatRelief();
-        float incomeTaxAmount=(grossAmount-vatReliefAmount)* screenController.getIncomeTax();
+        float vatAmount = grossAmount - grossAmount / (1 + screenController.getArticleVat());
+        float vatReliefAmount = vatAmount * screenController.getVatRelief();
+        float incomeTaxAmount = (grossAmount - vatReliefAmount) * screenController.getIncomeTax();
 
-        reliefAmount=vatReliefAmount+incomeTaxAmount;
-        ((TextView)findViewById(R.id.tv_relief)).setText(String.format("%1$,.2f", reliefAmount));
-        ((TextView)findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f",grossAmount-reliefAmount));
-
+        reliefAmount = vatReliefAmount + incomeTaxAmount;
+        ((TextView) findViewById(R.id.tv_relief_vat)).setText(String.format("%1$,.2f", vatReliefAmount));
+        ((TextView) findViewById(R.id.tv_relief_inc)).setText(String.format("%1$,.2f", incomeTaxAmount));
+        ((TextView) findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f", grossAmount - reliefAmount));
     }
 
     private void showAds(){
