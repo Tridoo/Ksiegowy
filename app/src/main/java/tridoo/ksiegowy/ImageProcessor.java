@@ -38,22 +38,18 @@ public class ImageProcessor implements Runnable {
 
         Frame frame = new Frame.Builder().setBitmap(cropBitmap(bmp)).build();
         SparseArray<TextBlock> textBlocks = textRecognizer.detect(frame);
-        String text = "";
+
+        StringBuilder text = new StringBuilder();
         for (int i = 0; i < textBlocks.size(); i++) {
             if (textBlocks.get(i) == null) continue;
-            text += textBlocks.get(i).getValue();
+            text.append(textBlocks.get(i).getValue());
         }
 
         final Pattern pattern = Pattern.compile(Config.REGEXP);
-        Matcher matcher = pattern.matcher(text);
+        Matcher matcher = pattern.matcher(text.toString());
         if (matcher.find()) {
             final String finalText = matcher.group(0);
-            screenController.geteGross().post(new Runnable() {
-                @Override
-                public void run() {
-                    screenController.geteGross().setText(finalText);
-                }
-            });
+            screenController.geteGross().post(() -> screenController.geteGross().setText(finalText));
         }
     }
 

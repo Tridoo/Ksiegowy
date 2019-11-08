@@ -1,12 +1,12 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 29
+    buildToolsVersion '29.0.2'
     defaultConfig {
         applicationId "tridoo.ksiegowy"
         minSdkVersion 21
-        targetSdkVersion 25
+        targetSdkVersion 29
         versionCode 3
         versionName "1.0"
         multiDexEnabled true
@@ -18,15 +18,20 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    testCompile 'junit:junit:4.12'
-    compile 'com.google.android.gms:play-services:10.2.1'
-    compile 'com.google.android.gms:play-services-ads:10.2.1'
+
+    implementation 'com.android.support:appcompat-v7:25.3.1'
+    testImplementation 'junit:junit:4.12'
+    implementation 'com.google.android.gms:play-services:12.0.1'
+    implementation 'com.google.android.gms:play-services-ads:12.0.0'
 }

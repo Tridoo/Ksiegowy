@@ -26,13 +26,13 @@ import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.vision.text.TextRecognizer;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -41,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private int captureState;
     private TextureView textureView;
     private TextRecognizer textRecognizer;
-    private float incomeTax, vatRelief, articleVat;
+    private int incomeTaxPercent, vatReliefPercent, articleVatPercent;
     private Dao dao;
 
     private TextureView.SurfaceTextureListener surfaceTextureListener;
@@ -80,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
             readSavedParameters();
             screenController.getLayParameters().setVisibility(View.GONE);
         }else{
-            incomeTax = 0.19f;
-            vatRelief = 1f;
+            incomeTaxPercent = 19;
+            vatReliefPercent = 100;
             screenController.getLaySummary().setVisibility(View.GONE);
         }
         screenController.setupParameters();
@@ -138,12 +138,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
 //todo refactor
-        onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
-            @Override
-            public void onImageAvailable(ImageReader reader) {
-                backgroundHandler.post(new ImageProcessor(reader.acquireLatestImage(),textRecognizer, screenController));
-            }
-        };
+        onImageAvailableListener = reader -> backgroundHandler.post(new ImageProcessor(reader.acquireLatestImage(),textRecognizer, screenController));
 
         previewCaptureCallback = new CameraCaptureSession.CaptureCallback() {
                     private void process(CaptureResult captureResult) {
@@ -176,16 +171,24 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void calculate() {
-        float reliefAmount;
-        float grossAmount = screenController.getGross();
-        float vatAmount = grossAmount - grossAmount / (1 + screenController.getArticleVat());
-        float vatReliefAmount = vatAmount * screenController.getVatRelief();
-        float incomeTaxAmount = (grossAmount - vatReliefAmount) * screenController.getIncomeTax();
+        BigDecimal grossAmount = new BigDecimal(screenController.getGross());
+        BigDecimal netAmount = grossAmount.divide(BigDecimal.valueOf(100 + screenController.getArticleVat())
+                .divide(BigDecimal.valueOf(100), 4, BigDecimal.ROUND_HALF_EVEN), 4, BigDecimal.ROUND_HALF_EVEN);
 
-        reliefAmount = vatReliefAmount + incomeTaxAmount;
-        ((TextView) findViewById(R.id.tv_relief_vat)).setText(String.format("%1$,.2f", vatReliefAmount));
-        ((TextView) findViewById(R.id.tv_relief_inc)).setText(String.format("%1$,.2f", incomeTaxAmount));
-        ((TextView) findViewById(R.id.tv_cost)).setText(String.format("%1$,.2f", grossAmount - reliefAmount));
+        BigDecimal vatAmount = grossAmount.subtract(netAmount);
+
+        BigDecimal vatReliefAmount = vatAmount.multiply(BigDecimal.valueOf(screenController.getVatRelief()))
+                .divide(BigDecimal.valueOf(100),2, BigDecimal.ROUND_HALF_EVEN);
+
+        BigDecimal incomeTaxAmount = grossAmount.subtract(vatReliefAmount)
+                .multiply(BigDecimal.valueOf(screenController.getIncomeTax()))
+                .divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_EVEN);
+
+        BigDecimal reliefAmount = vatReliefAmount.add(incomeTaxAmount);
+
+        BigDecimal expense = grossAmount.subtract(reliefAmount);
+
+        screenController.setCalculatedValues(vatReliefAmount, incomeTaxAmount, expense);
     }
 
     private void showAds(){
@@ -194,13 +197,13 @@ public class MainActivity extends AppCompatActivity {
         adView.loadAd(adRequest);
     }
 
-    private void readSavedParameters(){
-        incomeTax = (float) (dao.getIncomeTax()*0.01);
-        vatRelief = (float) (dao.getVat()*0.01);
+    private void readSavedParameters() {
+        incomeTaxPercent = dao.getIncomeTax();
+        vatReliefPercent = dao.getVat();
     }
 
     public void saveParameters(){
-        dao.saveTaxes((int)(screenController.getVatRelief() *100),(int)(screenController.getIncomeTax() *100));
+        dao.saveTaxes(screenController.getVatRelief(), screenController.getIncomeTax());
     }
 
     @Override
@@ -378,11 +381,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private static Size prevSize(Size[] choices, int width){
-        for (int i=1;i<choices.length;i++){
-            if(choices[i].getWidth()<width)return choices[i-1];
+    private static Size prevSize(Size[] choices, int width) {
+        for (int i = 1; i < choices.length; i++) {
+            if (choices[i].getWidth() < width) return choices[i - 1];
         }
-        return  choices[0];
+        return choices[0];
     }
 
     private static Size chooseImageSize(Size[] choices) {
@@ -408,28 +411,28 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setIncomeTax(float incomeTax) {
-        this.incomeTax = incomeTax;
+    public void setIncomeTax(int incomeTax) {
+        incomeTaxPercent = incomeTax;
     }
 
-    public void setVatRelief(float vatRelief) {
-        this.vatRelief = vatRelief;
+    public void setVatRelief(int vatRelief) {
+        vatReliefPercent = vatRelief;
     }
 
-    public void setArticleVat(float articleVat) {
-        this.articleVat = articleVat;
+    public void setArticleVat(int articleVat) {
+        articleVatPercent = articleVat;
     }
 
-    public float getIncomeTax() {
-        return incomeTax;
+    public int getIncomeTaxPercent() {
+        return incomeTaxPercent;
     }
 
-    public float getVatRelief() {
-        return vatRelief;
+    public int getVatReliefPercent() {
+        return vatReliefPercent;
     }
 
-    public float getArticleVat() {
-        return articleVat;
+    public int getArticleVatPercent() {
+        return articleVatPercent;
     }
 
     public boolean isCameraPermission() {

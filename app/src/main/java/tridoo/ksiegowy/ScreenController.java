@@ -20,6 +20,8 @@ import android.widget.RadioGroup;
 import android.widget.Switch;
 import android.widget.TextView;
 
+import java.math.BigDecimal;
+
 public class ScreenController {
     private MainActivity activity;
     private GridLayout layParameters;
@@ -39,12 +41,7 @@ public class ScreenController {
         curtain= activity.findViewById(R.id.tv_curtain);
         swPreview=((Switch) activity.findViewById(R.id.sw_preview));
 
-        ((ImageButton) activity.findViewById(R.id.btn_scan)).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                activity.capture();
-            }
-        });
+        ((ImageButton) activity.findViewById(R.id.btn_scan)).setOnClickListener(v -> activity.capture());
 
         swPreview.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
@@ -63,37 +60,31 @@ public class ScreenController {
             }
         });
 
-        ((activity.findViewById(R.id.btn_edit))).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                layParameters.setVisibility(View.VISIBLE);
-                laySummary.setVisibility(View.GONE);
-            }
+        ((activity.findViewById(R.id.btn_edit))).setOnClickListener(v -> {
+            layParameters.setVisibility(View.VISIBLE);
+            laySummary.setVisibility(View.GONE);
         });
 
-        ((activity.findViewById(R.id.btn_up))).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                layParameters.setVisibility(View.GONE);
-                laySummary.setVisibility(View.VISIBLE);
-                setupParameters();
-            }
+        ((activity.findViewById(R.id.btn_up))).setOnClickListener(v -> {
+            layParameters.setVisibility(View.GONE);
+            laySummary.setVisibility(View.VISIBLE);
+            setupParameters();
         });
 
         ((RadioGroup)activity.findViewById(R.id.gr_income)).setOnCheckedChangeListener(new CheckedChangeListener());
         ((RadioGroup)activity.findViewById(R.id.gr_vat)).setOnCheckedChangeListener(new CheckedChangeListener());
         ((RadioGroup)activity.findViewById(R.id.gr_vat2)).setOnCheckedChangeListener(new CheckedChangeListener());
-//wyrównanie RB grup
-         //http://stackoverflow.com/questions/2381560/how-to-group-a-3x3-grid-of-radio-buttons
 
 
-        TextWatcher watcher= new TextWatcher() {
+        TextWatcher watcher = new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                    activity.calculate();
+                activity.calculate();
             }
+
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
                 //Do something or nothing.
             }
+
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 //Do something or nothing
             }
@@ -122,7 +113,7 @@ public class ScreenController {
         });
     }
 
-    public static float dpToPx(Context context, float valueInDp) {
+    private static float dpToPx(Context context, float valueInDp) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, metrics);
     }
@@ -140,54 +131,58 @@ public class ScreenController {
         activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
-    public void readCheckedParameters(){
+    private void readCheckedParameters(){
         activity.setVatRelief(getVatRelief());
         activity.setIncomeTax(getIncomeTax());
         activity.setArticleVat(getArticleVat());
     }
 
-    public float getArticleVat(){
-        if(((RadioButton)activity.findViewById(R.id.rb_p_0)).isChecked()) return 0f;
-        if(((RadioButton)activity.findViewById(R.id.rb_p_5)).isChecked()) return 0.05f;
-        if(((RadioButton)activity.findViewById(R.id.rb_p_8)).isChecked()) return 0.08f;
-        return 0.23f;
+    public int getArticleVat(){
+        if(((RadioButton)activity.findViewById(R.id.rb_p_0)).isChecked()) return 0;
+        if(((RadioButton)activity.findViewById(R.id.rb_p_5)).isChecked()) return 5;
+        if(((RadioButton)activity.findViewById(R.id.rb_p_8)).isChecked()) return 8;
+        return 23;
     }
 
-    public float getVatRelief(){
-        if(((RadioButton)activity.findViewById(R.id.rb_0)).isChecked()) return 0f;
-        if(((RadioButton)activity.findViewById(R.id.rb_50)).isChecked()) return 0.5f;
-        return 1;
+    public int getVatRelief(){
+        if(((RadioButton)activity.findViewById(R.id.rb_0)).isChecked()) return 0;
+        if(((RadioButton)activity.findViewById(R.id.rb_50)).isChecked()) return 50;
+        return 100;
     }
 
-    public float getIncomeTax(){
-        if(((RadioButton)activity.findViewById(R.id.rb_18)).isChecked()) return 0.18f;
-        else return 0.19f;
+    public int getIncomeTax(){
+        if(((RadioButton)activity.findViewById(R.id.rb_18)).isChecked()) return 18;
+        else return 19;
     }
 
-    public float getGross(){
-        String gross=eGross.getText().toString();
-        return gross.isEmpty() ? 0 : Float.valueOf(gross.replace(",", "."));
+    public String getGross() {
+        String gross = eGross.getText().toString();
+        return gross.isEmpty() ? "0" : gross;
     }
 
     public void setupParameters(){
-        ((TextView)activity.findViewById(R.id.tv_income_tax)).setText(activity.getIncomeTax() *100+"%");
-        ((TextView)activity.findViewById(R.id.tv_vat)).setText(activity.getVatRelief() *100+"%");
+        ((TextView) activity.findViewById(R.id.tv_income_tax)).setText(colvertToPercent(activity.getIncomeTaxPercent()));
+        ((TextView) activity.findViewById(R.id.tv_vat)).setText(colvertToPercent(activity.getVatReliefPercent()));
 
-        if (activity.getIncomeTax() == 0.18f) {
+        if (activity.getIncomeTaxPercent() == 18) {
             ((RadioButton) activity.findViewById(R.id.rb_18)).setChecked(true);
         } else {
             ((RadioButton) activity.findViewById(R.id.rb_19)).setChecked(true);
         }
 
-        if (activity.getVatRelief() == 0f) {
+        if (activity.getVatReliefPercent() == 0) {
             ((RadioButton) activity.findViewById(R.id.rb_0)).setChecked(true);
 
-        } else if (activity.getVatRelief() == 0.5f) {
+        } else if (activity.getVatReliefPercent() == 50) {
             ((RadioButton) activity.findViewById(R.id.rb_50)).setChecked(true);
 
         } else  {
             ((RadioButton) activity.findViewById(R.id.rb_100)).setChecked(true);
         }
+    }
+
+    private String colvertToPercent(int value) {
+        return value + "%";
     }
 
     public GridLayout getLayParameters() {
@@ -204,6 +199,12 @@ public class ScreenController {
 
     public void setSwitchState(boolean state){
         swPreview.setChecked(state);
+    }
+
+    public void setCalculatedValues(BigDecimal vatReliefAmount, BigDecimal incomeTaxAmount, BigDecimal expense) {
+        ((TextView) activity.findViewById(R.id.tv_relief_vat)).setText(vatReliefAmount.toString());
+        ((TextView) activity.findViewById(R.id.tv_relief_inc)).setText(incomeTaxAmount.toString());
+        ((TextView) activity.findViewById(R.id.tv_cost)).setText(expense.toString());
     }
 
     private class CheckedChangeListener implements RadioGroup.OnCheckedChangeListener {

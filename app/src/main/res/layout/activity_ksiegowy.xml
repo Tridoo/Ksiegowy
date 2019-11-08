@@ -304,8 +304,9 @@
             android:id="@+id/e_gross"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="left"
             android:layout_rowWeight="1"
+            android:layout_gravity="left"
+            android:layout_marginStart="5dp"
             android:gravity="left|center_vertical"
             android:inputType="numberDecimal"
             android:minEms="3" />
@@ -325,9 +326,10 @@
             android:id="@+id/tv_relief_vat"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
+            android:layout_rowWeight="1"
             android:layout_columnWeight="5"
             android:layout_gravity="fill_vertical"
-            android:layout_rowWeight="1"
+            android:layout_marginStart="5dp"
             android:gravity="left|center_vertical" />
 
         <TextView
@@ -345,9 +347,10 @@
             android:id="@+id/tv_relief_inc"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
+            android:layout_rowWeight="1"
             android:layout_columnWeight="5"
             android:layout_gravity="fill_vertical"
-            android:layout_rowWeight="1"
+            android:layout_marginStart="5dp"
             android:gravity="left|center_vertical" />
 
         <TextView
@@ -366,9 +369,10 @@
             android:id="@+id/tv_cost"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
+            android:layout_rowWeight="1"
             android:layout_columnWeight="5"
             android:layout_gravity="fill_vertical"
-            android:layout_rowWeight="1"
+            android:layout_marginStart="5dp"
             android:gravity="left|center_vertical"
             android:textStyle="bold" />
     </GridLayout>
