@@ -1,14 +1,11 @@
 package tridoo.ksiegowy;
 
 
-import android.content.Context;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
@@ -24,160 +21,197 @@ import java.math.BigDecimal;
 
 public class ScreenController {
     private MainActivity activity;
+    private CompoundButton.OnCheckedChangeListener onCheckedChangeListener;
     private GridLayout layParameters;
     private LinearLayout laySummary;
+    private LinearLayout layButtons;
+
     private EditText eGross;
     private View curtain;
     private Switch swPreview;
 
-    public ScreenController(MainActivity activity){
-        this.activity=activity;
+    private ImageButton buttonScan;
+    private ImageButton buttonEdit;
+    private ImageButton buttonUp;
+    private RadioGroup groupIncome;
+    private RadioGroup groupVat;
+    private RadioGroup groupVat2;
+    private View frame;
+    private RadioButton rbArticleVat0;
+    private RadioButton rbArticleVat5;
+    private RadioButton rbArticleVat8;
+    private RadioButton rbVatRelif0;
+    private RadioButton rbVatRelif50;
+    private RadioButton rbIncomeTax1;
+    private RadioButton rbIncomeTax2;
+    private RadioButton rbVatRelif100;
+    private TextView tvIncomeTax;
+    private TextView tvVat;
+    private TextView tvVatRelief;
+    private TextView tvIncomeRelief;
+    private TextView tvCost;
+    private View activityRootView;
+
+    private TextureView textureView;
+
+    private int vat_relief_100;
+    private int vat_relief_50;
+    private int vat_relief_0;
+
+    private int income_tax_1;
+    private int income_tax_2;
+
+    private int article_vat_23;
+    private int article_vat_8;
+    private int article_vat_5;
+    private int article_vat_0;
+
+
+    public ScreenController(MainActivity activity) {
+        this.activity = activity;
     }
 
-    public void setupButtons(){
-        layParameters=(GridLayout)activity.findViewById(R.id.lay_parameters);
-        laySummary=(LinearLayout)activity.findViewById(R.id.lay_summary);
+    public void postConstruct() {
+        getConstants();
+        assignButtons();
+        setupClickListeners();
+    }
+
+    private void getConstants() {
+        vat_relief_100 = activity.getApplicationContext().getResources().getInteger(R.integer.vat_relief_100);
+        vat_relief_50 = activity.getApplicationContext().getResources().getInteger(R.integer.vat_relief_50);
+        vat_relief_0 = activity.getApplicationContext().getResources().getInteger(R.integer.vat_relief_0);
+
+        income_tax_1 = activity.getApplicationContext().getResources().getInteger(R.integer.income_I);
+        income_tax_2 = activity.getApplicationContext().getResources().getInteger(R.integer.income_II);
+
+        article_vat_23 = activity.getApplicationContext().getResources().getInteger(R.integer.article_vat_23);
+        article_vat_8 = activity.getApplicationContext().getResources().getInteger(R.integer.article_vat_8);
+        article_vat_5 = activity.getApplicationContext().getResources().getInteger(R.integer.article_vat_5);
+        article_vat_0 = activity.getApplicationContext().getResources().getInteger(R.integer.article_vat_0);
+    }
+
+    private void assignButtons() {
+        activityRootView = activity.findViewById(R.id.lay_root);
+        layParameters = (GridLayout) activity.findViewById(R.id.lay_parameters);
+        laySummary = (LinearLayout) activity.findViewById(R.id.lay_summary);
+        layButtons = (LinearLayout) activity.findViewById(R.id.lay_buttons);
+
         eGross = (EditText) activity.findViewById(R.id.e_gross);
-        curtain= activity.findViewById(R.id.tv_curtain);
-        swPreview=((Switch) activity.findViewById(R.id.sw_preview));
+        curtain = activity.findViewById(R.id.tv_curtain);
+        swPreview = ((Switch) activity.findViewById(R.id.sw_preview));
 
-        ((ImageButton) activity.findViewById(R.id.btn_scan)).setOnClickListener(v -> activity.capture());
+        buttonScan = (ImageButton) activity.findViewById(R.id.btn_scan);
+        buttonEdit = (ImageButton) activity.findViewById(R.id.btn_edit);
+        buttonUp = (ImageButton) activity.findViewById(R.id.btn_up);
 
-        swPreview.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton v, boolean isChecked) {
-                if (!isChecked) {
-                    activity.closeCamera();
-                    activity.stopBackgroundThread();
-                    curtain.setVisibility(View.VISIBLE);
-                } else {
-                    activity.startBackgroundThread();
-                    activity.setupCamera(activity.getTextureView().getWidth(), activity.getTextureView().getHeight());
-                    if (activity.isCameraPermission()) {
-                        if (activity.connectCamera()) curtain.setVisibility(View.INVISIBLE);
-                    } else activity.checkPermisionns();
-                }
-            }
-        });
+        groupIncome = ((RadioGroup) activity.findViewById(R.id.gr_income));
+        groupVat = ((RadioGroup) activity.findViewById(R.id.gr_vat));
+        groupVat2 = ((RadioGroup) activity.findViewById(R.id.gr_vat2));
 
-        ((activity.findViewById(R.id.btn_edit))).setOnClickListener(v -> {
-            layParameters.setVisibility(View.VISIBLE);
-            laySummary.setVisibility(View.GONE);
-        });
+        frame = activity.findViewById(R.id.frame);
 
-        ((activity.findViewById(R.id.btn_up))).setOnClickListener(v -> {
-            layParameters.setVisibility(View.GONE);
-            laySummary.setVisibility(View.VISIBLE);
-            setupParameters();
-        });
+        rbArticleVat0 = ((RadioButton) activity.findViewById(R.id.rb_p_0));
+        rbArticleVat5 = ((RadioButton) activity.findViewById(R.id.rb_p_5));
+        rbArticleVat8 = ((RadioButton) activity.findViewById(R.id.rb_p_8));
+        rbVatRelif0 = ((RadioButton) activity.findViewById(R.id.rb_0));
+        rbVatRelif50 = ((RadioButton) activity.findViewById(R.id.rb_50));
+        rbVatRelif100 = ((RadioButton) activity.findViewById(R.id.rb_100));
+        rbIncomeTax1 = ((RadioButton) activity.findViewById(R.id.rb_18));
+        rbIncomeTax2 = ((RadioButton) activity.findViewById(R.id.rb_19));
 
-        ((RadioGroup)activity.findViewById(R.id.gr_income)).setOnCheckedChangeListener(new CheckedChangeListener());
-        ((RadioGroup)activity.findViewById(R.id.gr_vat)).setOnCheckedChangeListener(new CheckedChangeListener());
-        ((RadioGroup)activity.findViewById(R.id.gr_vat2)).setOnCheckedChangeListener(new CheckedChangeListener());
-
-
-        TextWatcher watcher = new TextWatcher() {
-            public void afterTextChanged(Editable s) {
-                activity.calculate();
-            }
-
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-                //Do something or nothing.
-            }
-
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                //Do something or nothing
-            }
-        };
-        eGross.addTextChangedListener(watcher);
+        tvIncomeTax = ((TextView) activity.findViewById(R.id.tv_income_tax));
+        tvVat = ((TextView) activity.findViewById(R.id.tv_vat));
+        tvVatRelief = ((TextView) activity.findViewById(R.id.tv_relief_vat));
+        tvIncomeRelief = ((TextView) activity.findViewById(R.id.tv_relief_inc));
+        tvCost = ((TextView) activity.findViewById(R.id.tv_cost));
+        textureView = (TextureView) activity.findViewById(R.id.textureView);
     }
 
-    public void keyboardObserver(final Context context){
-        final View activityRootView = activity.findViewById(R.id.lay_root);
-        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                int heightDiff = activityRootView.getRootView().getHeight() - activityRootView.getHeight();
-                int width=activity.getTextureView().getWidth();
-                if (heightDiff > dpToPx(context, 200)) { //todo inaczej?
-                    activity.findViewById(R.id.lay_buttons).setVisibility(View.GONE);
-                    resizeElements(width,10); //nie chować textureview !!
-                    curtain.setVisibility(View.VISIBLE);
-                }
-                else {
-                    activity.findViewById(R.id.lay_buttons).setVisibility(View.VISIBLE);
-                    resizeElements(width);
-                    if (swPreview.isChecked()) curtain.setVisibility(View.INVISIBLE);
-                }
-            }
-        });
+    private void setupClickListeners() {
+        onCheckedChangeListener = new OnCheckedChangeListenerImpl(activity, curtain);
+
+        buttonScan.setOnClickListener(v -> onScanClick());
+        buttonEdit.setOnClickListener(v -> onEditClick());
+        buttonUp.setOnClickListener(v -> onUpClick());
+
+        groupIncome.setOnCheckedChangeListener(new CheckedChangeListener());
+        groupVat.setOnCheckedChangeListener(new CheckedChangeListener());
+        groupVat2.setOnCheckedChangeListener(new CheckedChangeListener());
+
+        eGross.addTextChangedListener(new TextWatcherImpl(activity));
+
+        activityRootView.getViewTreeObserver().addOnGlobalLayoutListener(() -> onGlobalLayClick());
+
+        swPreview.setOnCheckedChangeListener((button, isChecked) -> onCheckedChangeListener.onCheckedChanged(button, isChecked));
     }
 
-    private static float dpToPx(Context context, float valueInDp) {
-        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+    private static float dpToPx(DisplayMetrics metrics, float valueInDp) {
         return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, valueInDp, metrics);
     }
 
-    public void resizeElements(int ... param){
+    public void resizeElements(int... param) {
         int width = param.length > 0 ? param[0] : 0;
-        int height = param.length > 1 ? param[1] : (int)(width*0.5f);
-        activity.getTextureView().getLayoutParams().height= height;
-        ViewGroup.LayoutParams params= activity.findViewById(R.id.frame).getLayoutParams();
-        params.width=width/2;
-        params.height=height/2;
+        int height = param.length > 1 ? param[1] : (int) (width * 0.5f);
+        textureView.getLayoutParams().height = height;
+        ViewGroup.LayoutParams params = frame.getLayoutParams();
+        params.width = width / 2;
+        params.height = height / 2;
     }
 
-    public void hideKeyboard(){
+    public void hideKeyboard() {
         activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN);
     }
 
-    private void readCheckedParameters(){
+    private void setReadedParameters() {
         activity.setVatRelief(getVatRelief());
         activity.setIncomeTax(getIncomeTax());
         activity.setArticleVat(getArticleVat());
     }
 
-    public int getArticleVat(){
-        if(((RadioButton)activity.findViewById(R.id.rb_p_0)).isChecked()) return 0;
-        if(((RadioButton)activity.findViewById(R.id.rb_p_5)).isChecked()) return 5;
-        if(((RadioButton)activity.findViewById(R.id.rb_p_8)).isChecked()) return 8;
-        return 23;
+    public int getArticleVat() {
+        if (rbArticleVat0.isChecked()) return article_vat_0;
+        if (rbArticleVat5.isChecked()) return article_vat_5;
+        if (rbArticleVat8.isChecked()) return article_vat_8;
+        return article_vat_23;
     }
 
-    public int getVatRelief(){
-        if(((RadioButton)activity.findViewById(R.id.rb_0)).isChecked()) return 0;
-        if(((RadioButton)activity.findViewById(R.id.rb_50)).isChecked()) return 50;
-        return 100;
+    public int getVatRelief() {
+        if (rbVatRelif0.isChecked()) return vat_relief_0;
+        if (rbVatRelif50.isChecked()) return vat_relief_50;
+        return vat_relief_100;
     }
 
-    public int getIncomeTax(){
-        if(((RadioButton)activity.findViewById(R.id.rb_18)).isChecked()) return 18;
-        else return 19;
+    public int getIncomeTax() {
+        if (rbIncomeTax1.isChecked()) return income_tax_1;
+        return income_tax_2;
     }
 
-    public String getGross() {
+    public String getGrossAsString() {
         String gross = eGross.getText().toString();
         return gross.isEmpty() ? "0" : gross;
     }
 
-    public void setupParameters(){
-        ((TextView) activity.findViewById(R.id.tv_income_tax)).setText(colvertToPercent(activity.getIncomeTaxPercent()));
-        ((TextView) activity.findViewById(R.id.tv_vat)).setText(colvertToPercent(activity.getVatReliefPercent()));
+    public void setGrossString(String text) {
+        eGross.post(() -> eGross.setText(text));
+    }
 
-        if (activity.getIncomeTaxPercent() == 18) {
-            ((RadioButton) activity.findViewById(R.id.rb_18)).setChecked(true);
+    public void setParametersOnViews() {
+        tvIncomeTax.setText(colvertToPercent(activity.getIncomeTaxPercent()));
+        tvVat.setText(colvertToPercent(activity.getVatReliefPercent()));
+
+        if (activity.getIncomeTaxPercent() == income_tax_1) {
+            rbIncomeTax1.setChecked(true);
         } else {
-            ((RadioButton) activity.findViewById(R.id.rb_19)).setChecked(true);
+            rbIncomeTax2.setChecked(true);
         }
 
-        if (activity.getVatReliefPercent() == 0) {
-            ((RadioButton) activity.findViewById(R.id.rb_0)).setChecked(true);
-
-        } else if (activity.getVatReliefPercent() == 50) {
-            ((RadioButton) activity.findViewById(R.id.rb_50)).setChecked(true);
-
-        } else  {
-            ((RadioButton) activity.findViewById(R.id.rb_100)).setChecked(true);
+        if (activity.getVatReliefPercent() == vat_relief_0) {
+            rbVatRelif0.setChecked(true);
+        } else if (activity.getVatReliefPercent() == vat_relief_50) {
+            rbVatRelif50.setChecked(true);
+        } else {
+            rbVatRelif100.setChecked(true);
         }
     }
 
@@ -185,32 +219,62 @@ public class ScreenController {
         return value + "%";
     }
 
-    public GridLayout getLayParameters() {
-        return layParameters;
-    }
-
-    public LinearLayout getLaySummary() {
-        return laySummary;
-    }
-
-    public EditText geteGross() {
-        return eGross;
-    }
-
-    public void setSwitchState(boolean state){
+    public void setSwitchState(boolean state) {
         swPreview.setChecked(state);
     }
 
     public void setCalculatedValues(BigDecimal vatReliefAmount, BigDecimal incomeTaxAmount, BigDecimal expense) {
-        ((TextView) activity.findViewById(R.id.tv_relief_vat)).setText(vatReliefAmount.toString());
-        ((TextView) activity.findViewById(R.id.tv_relief_inc)).setText(incomeTaxAmount.toString());
-        ((TextView) activity.findViewById(R.id.tv_cost)).setText(expense.toString());
+        tvVatRelief.setText(vatReliefAmount.toString());
+        tvIncomeRelief.setText(incomeTaxAmount.toString());
+        tvCost.setText(expense.toString());
+    }
+
+    public void setLayParametersVisible(boolean isVisible) {
+        layParameters.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+    }
+
+    public void setLaySummaryVisible(boolean isVisible) {
+        laySummary.setVisibility(isVisible ? View.VISIBLE : View.GONE);
+    }
+
+    private void onScanClick() {
+        activity.capture();
+    }
+
+    private void onEditClick() {
+        setLayParametersVisible(true);
+        setLaySummaryVisible(false);
+    }
+
+    private void onUpClick() {
+        setLayParametersVisible(false);
+        setLaySummaryVisible(true);
+        setParametersOnViews();
+    }
+
+    private void onGlobalLayClick() {
+        DisplayMetrics metrics = activity.getApplicationContext().getResources().getDisplayMetrics();
+        int heightDiff = activityRootView.getRootView().getHeight() - activityRootView.getHeight();
+        int width = textureView.getWidth();
+        if (heightDiff > dpToPx(metrics, 200)) { //todo inaczej?
+            layButtons.setVisibility(View.GONE);
+            resizeElements(width, 10); //nie chować textureview !!
+            curtain.setVisibility(View.VISIBLE);
+        } else {
+            layButtons.setVisibility(View.VISIBLE);
+            resizeElements(width);
+            if (swPreview.isChecked()) curtain.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    public TextureView getTextureView() {
+        return textureView;
     }
 
     private class CheckedChangeListener implements RadioGroup.OnCheckedChangeListener {
         @Override
         public void onCheckedChanged(RadioGroup group, int checkedId) {
-            readCheckedParameters();
+            setReadedParameters();
             activity.calculate();
             activity.saveParameters();
         }

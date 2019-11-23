@@ -7,4 +7,17 @@
     <string name="no_permission">Aplikacja potrzebuje dostępu do kamery</string>
     <string name="camera_off">Kamera jest wyłączona</string>
     <string name="camera_error">Błąd kamery</string>
+
+    <integer name="income_I">17</integer>
+    <integer name="income_II">19</integer>
+
+    <integer name="vat_relief_100">100</integer>
+    <integer name="vat_relief_50">50</integer>
+    <integer name="vat_relief_0">0</integer>
+
+    <integer name="article_vat_23">23</integer>
+    <integer name="article_vat_8">8</integer>
+    <integer name="article_vat_5">5</integer>
+    <integer name="article_vat_0">0</integer>
+
 </resources>

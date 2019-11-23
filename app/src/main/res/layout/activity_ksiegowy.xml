@@ -52,7 +52,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:layout_weight="2"
-                android:text="18%" />
+                android:text="@integer/income_I" />
 
             <TextView
                 android:id="@+id/textView9"
@@ -75,7 +75,7 @@
                 android:id="@+id/btn_edit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
+                android:layout_gravity="end|center_vertical"
                 android:layout_weight="1"
                 android:background="@null"
                 android:gravity="center_vertical|end"
@@ -113,30 +113,46 @@
                 android:id="@+id/gr_income"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_column="1"
-                android:layout_columnWeight="2"
-                android:layout_gravity="center_vertical"
                 android:layout_row="0"
+                android:layout_column="1"
+                android:layout_columnWeight="20"
+                android:layout_gravity="center_vertical"
                 android:orientation="horizontal">
 
 
                 <RadioButton
                     android:id="@+id/rb_18"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:checked="true"
-                    android:text="18%"
+                    android:text="@integer/income_I"
                     ads:buttonTint="@color/green" />
 
+
+                <TextView
+                    android:id="@+id/textView10"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_weight="1"
+                    android:labelFor="@id/rb_18"
+                    android:text="%" />
 
                 <RadioButton
                     android:id="@+id/rb_19"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@integer/income_II"
+                    ads:buttonTint="@color/green" />
+
+                <TextView
+                    android:id="@+id/textView11"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|end"
                     android:layout_weight="1"
-                    android:text="19%"
-                    ads:buttonTint="@color/green" />
+                    android:labelFor="@id/rb_19"
+                    android:text="%" />
 
             </RadioGroup>
 
@@ -145,10 +161,10 @@
                 android:id="@+id/btn_up"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_row="0"
                 android:layout_column="2"
                 android:layout_columnWeight="1"
-                android:layout_gravity="center"
-                android:layout_row="0"
+                android:layout_gravity="end"
                 android:background="@null"
                 android:gravity="center"
                 android:scaleX="0.7"

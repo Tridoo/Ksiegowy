@@ -4,7 +4,6 @@ package tridoo.ksiegowy;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
-import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
@@ -12,8 +11,6 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
-import android.hardware.camera2.CaptureResult;
-import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Build;
@@ -25,7 +22,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Size;
 import android.view.Surface;
 import android.view.TextureView;
-import android.view.View;
 import android.widget.Toast;
 
 import com.google.android.gms.ads.AdRequest;
@@ -38,8 +34,10 @@ import java.util.Collections;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int DEFAULT_INCOME_TAX_PERCENT = 19;
+    private static final int DEFAULT_VAT_RELIEF_PERCENT = 100;
+
     private int captureState;
-    private TextureView textureView;
     private TextRecognizer textRecognizer;
     private int incomeTaxPercent, vatReliefPercent, articleVatPercent;
     private Dao dao;
@@ -69,116 +67,48 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ksiegowy);
-        context=getApplicationContext();
+        context = getApplicationContext();
 
+        screenController = new ScreenController(this);
+        screenController.postConstruct();
         init();
-        screenController=new ScreenController(this);
-        screenController.setupButtons();
-        screenController.keyboardObserver(context);
 
-        if (dao.isTaxesSaved()){
+        if (dao.isTaxesSaved()) {
             readSavedParameters();
-            screenController.getLayParameters().setVisibility(View.GONE);
-        }else{
-            incomeTaxPercent = 19;
-            vatReliefPercent = 100;
-            screenController.getLaySummary().setVisibility(View.GONE);
+            screenController.setLayParametersVisible(false);
+        } else {
+            incomeTaxPercent = DEFAULT_INCOME_TAX_PERCENT;
+            vatReliefPercent = DEFAULT_VAT_RELIEF_PERCENT;
+            screenController.setLaySummaryVisible(false);
         }
-        screenController.setupParameters();
+        screenController.setParametersOnViews();
 
         //showAds();
     }
 
-    private void init(){
+    private void init() {
         captureState = Config.STATE_PREVIEW;
-//todo refactor
-        surfaceTextureListener = new TextureView.SurfaceTextureListener() {
-            @Override
-            public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-                screenController.resizeElements(width, height);
-                Matrix matrix = new Matrix();
-                matrix.setScale(Config.SCALE_X, Config.SCALE_Y,width/2,height/2);
-                textureView.setTransform(matrix);
 
-                setupCamera(width, height);
-                if (isCameraPermission) connectCamera();
-            }
+        surfaceTextureListener = new SurfaceTextureListenerImpl(screenController, this);
+        cameraDeviceStateCallback = new CameraDeviceStateCallback(this);
 
-            @Override
-            public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
-            }
+        onImageAvailableListener = reader -> backgroundHandler.post(new ImageProcessor(reader.acquireLatestImage(), textRecognizer, screenController));
 
-            @Override
-            public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
-                return false;
-            }
+        previewCaptureCallback = new PreviewCaptureCallback(this);
 
-            @Override
-            public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            }
-        };
-
-        cameraDeviceStateCallback = new CameraDevice.StateCallback() {
-            @Override
-            public void onOpened(CameraDevice camera) {
-                cameraDevice = camera;
-                startPreview();
-            }
-
-            @Override
-            public void onDisconnected(CameraDevice camera) {
-                camera.close();
-                cameraDevice = null;
-            }
-
-            @Override
-            public void onError(CameraDevice camera, int error) {
-                camera.close();
-                cameraDevice = null;
-            }
-        };
-//todo refactor
-        onImageAvailableListener = reader -> backgroundHandler.post(new ImageProcessor(reader.acquireLatestImage(),textRecognizer, screenController));
-
-        previewCaptureCallback = new CameraCaptureSession.CaptureCallback() {
-                    private void process(CaptureResult captureResult) {
-                        switch (captureState) {
-                            case Config.STATE_PREVIEW:
-                                // Do nothing
-                                break;
-                            case Config.STATE_WAIT_LOCK:
-                                captureState = Config.STATE_PREVIEW;
-                                Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
-                                if (afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED || afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED) {
-                                    Toast.makeText(context, getString(R.string.scanning), Toast.LENGTH_SHORT).show();
-                                    startCaptureRequest();
-                                }
-                                break;
-                        }
-                    }
-
-                    @Override
-                    public void onCaptureCompleted(CameraCaptureSession session, CaptureRequest request, TotalCaptureResult result) {
-                        super.onCaptureCompleted(session, request, result);
-                        process(result);
-                    }
-                };
-
-        dao=new Dao(context);
-
-        textureView = (TextureView) findViewById(R.id.textureView);
-        textRecognizer=new TextRecognizer.Builder(context).build();
+        dao = new Dao(context);
+        textRecognizer = new TextRecognizer.Builder(context).build();
     }
 
     public void calculate() {
-        BigDecimal grossAmount = new BigDecimal(screenController.getGross());
+        BigDecimal grossAmount = new BigDecimal(screenController.getGrossAsString());
         BigDecimal netAmount = grossAmount.divide(BigDecimal.valueOf(100 + screenController.getArticleVat())
                 .divide(BigDecimal.valueOf(100), 4, BigDecimal.ROUND_HALF_EVEN), 4, BigDecimal.ROUND_HALF_EVEN);
 
         BigDecimal vatAmount = grossAmount.subtract(netAmount);
 
         BigDecimal vatReliefAmount = vatAmount.multiply(BigDecimal.valueOf(screenController.getVatRelief()))
-                .divide(BigDecimal.valueOf(100),2, BigDecimal.ROUND_HALF_EVEN);
+                .divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_EVEN);
 
         BigDecimal incomeTaxAmount = grossAmount.subtract(vatReliefAmount)
                 .multiply(BigDecimal.valueOf(screenController.getIncomeTax()))
@@ -191,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
         screenController.setCalculatedValues(vatReliefAmount, incomeTaxAmount, expense);
     }
 
-    private void showAds(){
+    private void showAds() {
         AdView adView = (AdView) findViewById(R.id.baner);
         AdRequest adRequest = new AdRequest.Builder().build();
         adView.loadAd(adRequest);
@@ -202,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         vatReliefPercent = dao.getVat();
     }
 
-    public void saveParameters(){
+    public void saveParameters() {
         dao.saveTaxes(screenController.getVatRelief(), screenController.getIncomeTax());
     }
 
@@ -217,21 +147,21 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         startBackgroundThread();
         //nie sprawdzac uprawnien, ich zmiana zatrzymuje całkonicie aplikacje
-        if (textureView.isAvailable()) {
-            setupCamera(textureView.getWidth(), textureView.getHeight());
+        if (screenController.getTextureView().isAvailable()) {
+            setupCamera();
             if (isCameraPermission) {
                 connectCamera();
             }
         } else {
-            textureView.setSurfaceTextureListener(surfaceTextureListener);
+            screenController.getTextureView().setSurfaceTextureListener(surfaceTextureListener);
         }
         screenController.hideKeyboard();
     }
 
-    public void checkPermisionns(){
+    public void checkPermisionns() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                isCameraPermission=true;
+                isCameraPermission = true;
             } else {
                 if (shouldShowRequestPermissionRationale(android.Manifest.permission.CAMERA)) {
                     screenController.setSwitchState(false);
@@ -240,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
                 requestPermissions(new String[]{android.Manifest.permission.CAMERA}, Config.REQUEST_CAMERA_PERMISSION_RESULT);
             }
         } else {
-            isCameraPermission=true;
+            isCameraPermission = true;
         }
     }
 
@@ -253,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(context, getString(R.string.no_permission), Toast.LENGTH_SHORT).show();
             } else {
                 screenController.setSwitchState(true);
-                isCameraPermission=true;
+                isCameraPermission = true;
             }
         }
     }
@@ -265,7 +195,8 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-    public void setupCamera(int width, int height) {
+    public void setupCamera() {
+        int width = screenController.getTextureView().getWidth();
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
         try {
             for (String cameraId : cameraManager.getCameraIdList()) {
@@ -289,9 +220,9 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean connectCamera() {
         CameraManager cameraManager = (CameraManager) getSystemService(Context.CAMERA_SERVICE);
-        if (cameraId==null) {
+        if (cameraId == null) {
             screenController.setSwitchState(false);
-            Toast.makeText(context, R.string.camera_error,Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, R.string.camera_error, Toast.LENGTH_SHORT).show();
             return false;
         }
         try {
@@ -302,8 +233,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    private void startPreview() {
-        SurfaceTexture surfaceTexture = textureView.getSurfaceTexture();
+    public void startPreview() {
+        SurfaceTexture surfaceTexture = screenController.getTextureView().getSurfaceTexture();
         surfaceTexture.setDefaultBufferSize(previewSize.getWidth(), previewSize.getHeight());
         Surface previewSurface = new Surface(surfaceTexture);
 
@@ -311,45 +242,24 @@ public class MainActivity extends AppCompatActivity {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
             captureRequestBuilder.addTarget(previewSurface);
             captureRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
-//todo refactor
-            cameraDevice.createCaptureSession(Arrays.asList(previewSurface, imageReader.getSurface()),
-                    new CameraCaptureSession.StateCallback() {
-                        @Override
-                        public void onConfigured(CameraCaptureSession session) {
-                            previewCaptureSession = session;
-                            try {
-                                previewCaptureSession.setRepeatingRequest(captureRequestBuilder.build(),
-                                        null, backgroundHandler);
-                            } catch (CameraAccessException e) {
-                                e.printStackTrace();
-                            }
-                        }
 
-                        @Override
-                        public void onConfigureFailed(CameraCaptureSession session) {
+            StateCallbackImpl stateCallback = new StateCallbackImpl(captureRequestBuilder, backgroundHandler, this);
+            cameraDevice.createCaptureSession(Arrays.asList(previewSurface, imageReader.getSurface()), stateCallback, null);
 
-                        }
-                    }, null);
         } catch (CameraAccessException e) {
             e.printStackTrace();
         }
     }
 
-    private void startCaptureRequest() {
+    public void startCaptureRequest() {
         try {
             captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
             captureRequestBuilder.addTarget(imageReader.getSurface());
             captureRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, 90);
-//todo refactor
-            CameraCaptureSession.CaptureCallback stillCaptureCallback = new
-                    CameraCaptureSession.CaptureCallback() {
-                        @Override
-                        public void onCaptureStarted(CameraCaptureSession session, CaptureRequest request, long timestamp, long frameNumber) {
-                            super.onCaptureStarted(session, request, timestamp, frameNumber);
-                        }
-                    };
 
-                previewCaptureSession.capture(captureRequestBuilder.build(), stillCaptureCallback, null);
+            CameraCaptureSession.CaptureCallback stillCaptureCallback = new StillCaptureCallback();
+
+            previewCaptureSession.capture(captureRequestBuilder.build(), stillCaptureCallback, null);
 
         } catch (CameraAccessException e) {
             e.printStackTrace();
@@ -370,7 +280,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void stopBackgroundThread() {
-        if (backgroundHandlerThread ==null) return;
+        if (backgroundHandlerThread == null) return;
         backgroundHandlerThread.quitSafely();
         try {
             backgroundHandlerThread.join();
@@ -397,8 +307,8 @@ public class MainActivity extends AppCompatActivity {
             checkPermisionns();
             return;
         }
-        if(backgroundHandler ==null){
-            Toast.makeText(context, R.string.camera_off,Toast.LENGTH_SHORT).show();
+        if (backgroundHandler == null) {
+            Toast.makeText(context, R.string.camera_off, Toast.LENGTH_SHORT).show();
             return;
         }
         captureState = Config.STATE_WAIT_LOCK;
@@ -439,8 +349,19 @@ public class MainActivity extends AppCompatActivity {
         return isCameraPermission;
     }
 
-    public TextureView getTextureView() {
-        return textureView;
+    public void setCameraDevice(CameraDevice camera) {
+        cameraDevice = camera;
     }
 
+    public void setPreviewCaptureSession(CameraCaptureSession previewCaptureSession) {
+        this.previewCaptureSession = previewCaptureSession;
+    }
+
+    public int getCaptureState() {
+        return captureState;
+    }
+
+    public void setCaptureState(int captureState) {
+        this.captureState = captureState;
+    }
 }

@@ -45,11 +45,10 @@ public class ImageProcessor implements Runnable {
             text.append(textBlocks.get(i).getValue());
         }
 
-        final Pattern pattern = Pattern.compile(Config.REGEXP);
-        Matcher matcher = pattern.matcher(text.toString());
+        Matcher matcher = Pattern.compile(Config.REGEXP).matcher(text.toString());
         if (matcher.find()) {
             final String finalText = matcher.group(0);
-            screenController.geteGross().post(() -> screenController.geteGross().setText(finalText));
+            screenController.setGrossString(finalText);
         }
     }
 
